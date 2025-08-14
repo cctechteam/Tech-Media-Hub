@@ -34,7 +34,6 @@ export default function DashboardPage() {
 
             if (!session?.user) {
                 redirect("/auth/login");
-                return;
             }
 
             const { data, error } = await supabase

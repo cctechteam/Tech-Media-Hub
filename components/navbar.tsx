@@ -5,6 +5,7 @@ import Logo from "../res/images/logo.png";
 import { useEffect, useState } from "react";
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 import { supabase } from "@/lib/database";
+import { redirect } from "next/navigation";
 
 const Navlinks = [
     { text: "Home", href: "/" },
@@ -27,6 +28,9 @@ export default function Navbar() {
         // Listen for auth changes
         const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
             setUser(session?.user ?? null);
+
+            if (session?.user == null)
+                redirect("/auth/login");
         });
 
         return () => {
@@ -37,6 +41,7 @@ export default function Navbar() {
     const handleLogout = async () => {
         await supabase.auth.signOut();
         setUser(null);
+        redirect("/auth/login");
     };
 
     return (
