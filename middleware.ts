@@ -1,41 +1,28 @@
 // middleware.ts
-import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
-import { supabase } from "./lib/database";
+import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
+import { supabase } from './lib/database';
 
 export async function middleware(req: NextRequest) {
-    const res = NextResponse.next();
-
-    // Get session from cookies
+    // Get current session
     const {
         data: { session },
     } = await supabase.auth.getSession();
 
-    const url = req.nextUrl.clone();
+    const url = req.nextUrl;
 
     // Redirect unauthenticated users to login
-    if (!session && url.pathname.startsWith("/dashboard")) {
-        url.pathname = "/auth/login";
+    if (!session?.user) {
+        url.pathname = '/auth/login';
         return NextResponse.redirect(url);
     }
 
-    // Role-based route protection for admin
-    if (url.pathname.startsWith("/dashboard/admin")) {
-        const { data: profile, error } = await supabase
-            .from("members")
-            .select("role")
-            .eq("id", session?.user.id)
-            .single();
-
-        if (error || profile?.role !== 4) {
-            url.pathname = "/dashboard";
-            return NextResponse.redirect(url);
-        }
-    }
-
-    return res;
+    return NextResponse.next();
 }
 
 export const config = {
-    matcher: ["/dashboard/:path*"],
+    matcher: [
+        "/dashboard",
+        '/dashboard/:path*'
+    ],
 };
