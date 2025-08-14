@@ -1,36 +1,54 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Campion College Tech & Media Production Hub
 
-## Getting Started
+The central website through which the Campion College Technology and Media Production operates.
 
-First, run the development server:
+---
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## Table of Contents
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- [Project Overview](#project-overview)
+- [Features](#features)
+- [Tech Stack](#tech-stack)
+- [Getting Started](#getting-started)
+- [Folder Structure](#folder-structure)
+- [Usage](#usage)
+- [License](#license)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Project Overview
 
-## Learn More
+The dashboard allows logged-in users to access personalized sections based on their role:
 
-To learn more about Next.js, take a look at the following resources:
+- **Admin:** Full access to all sections including user data overview.
+- **Member:** Access to tasks, announcements, resources, and timeline.
+- **Guest:** Access to tasks, announcements, and resources only.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+It includes a **dynamic layout**, **customizable sections**, and a **sticky footer** replicating Campion College’s official footer design.  
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+---
 
-## Deploy on Vercel
+## Features
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- Responsive, modern interface with **TailwindCSS**
+- Animated section appearance (fade-in)
+- Image & text display component (`ITD`) with alignment control
+- Role-based access for content sections
+- Floating settings panel for layout & section toggling
+- Newsletter signup form integration
+- Sticky footer with contact info, social links, and quick links
+- Plus many more
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+
+## Tech Stack
+
+- [Next.js 15.4.6](https://nextjs.org/) (App Router)
+- [React](https://reactjs.org/)
+- [Tailwind CSS](https://tailwindcss.com/)
+- [TypeScript](https://www.typescriptlang.org/)
+- [Next/Image](https://nextjs.org/docs/api-reference/next/image) for optimized images
+- [Supabase](https://supabase.com/) for authentication and database
+- [React Icons](https://react-icons.github.io/react-icons/) for social & UI icons
+
+---
