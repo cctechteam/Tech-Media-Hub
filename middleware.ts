@@ -3,26 +3,27 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { supabase } from './lib/database';
 
+const protectedRoutes = ['/dashboard']
+const publicRoutes = ['/auth/login', '/auth/signup', '/']
+
 export async function middleware(req: NextRequest) {
     // Get current session
     const {
         data: { session },
     } = await supabase.auth.getSession();
 
-    const url = req.nextUrl;
+    const path = req.nextUrl.pathname;
+    const isProtectedRoute = protectedRoutes.includes(path);
+    const isPublicRoute = publicRoutes.includes(path);
 
-    // Redirect unauthenticated users to login
-    if (!session?.user) {
-        url.pathname = '/auth/login';
-        return NextResponse.redirect(url);
+
+    if (isProtectedRoute && session?.user == null) {
+        return NextResponse.redirect(new URL('/auth/login', req.nextUrl))
     }
 
-    return NextResponse.next();
+    return NextResponse.next()
 }
 
 export const config = {
-    matcher: [
-        "/dashboard",
-        '/dashboard/:path*'
-    ],
+    matcher: ['/((?!api|_next/static|_next/image|.*\\.png$).*)'],
 };
