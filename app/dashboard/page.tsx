@@ -2,6 +2,7 @@
 
 import Navbar from "@/components/navbar";
 import { supabase } from "@/lib/database";
+import { redirect } from "next/navigation";
 import { useEffect, useState, useRef } from "react";
 
 const SECTIONS = [
@@ -31,7 +32,10 @@ export default function DashboardPage() {
                 data: { session },
             } = await supabase.auth.getSession();
 
-            if (!session?.user) return;
+            if (!session?.user) {
+                redirect("/auth/login");
+                return;
+            }
 
             const { data, error } = await supabase
                 .from("members")
