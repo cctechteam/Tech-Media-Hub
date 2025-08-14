@@ -73,16 +73,14 @@ export default function Navbar() {
                     ))}
                 </nav>
 
+
                 {/* Login / Signup / Logout */}
-                <div className="ml-6 inline-flex rounded-md overflow-hidden items-center gap-2">
+                <div className="ml-6 inline-flex rounded-md overflow-hidden">
                     {user ? (
                         <>
-                            <span className="px-3 py-1.5 text-gray-700 font-medium">
-                                {user.email}
-                            </span>
                             <button
                                 onClick={handleLogout}
-                                className="px-3 py-1.5 bg-red-600 text-white font-semibold hover:bg-red-700 transition-colors"
+                                className="px-3 py-1.5 text-red-600 font-thin hover:bg-gray-200 transition-colors"
                             >
                                 Logout
                             </button>

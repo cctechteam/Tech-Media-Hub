@@ -3,9 +3,6 @@
 import { useState } from "react";
 import { supabase } from "@/lib/database";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
-import Logo from "../../../res/images/logo.png";
-import TechTeamBanner from "../../../res/images/techteam.png";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 

@@ -1,15 +1,8 @@
 "use client";
 
 import Navbar from "@/components/navbar";
+import { supabase } from "@/lib/database";
 import { useEffect, useState, useRef } from "react";
-
-type UserRole = "admin" | "member" | "guest";
-
-interface User {
-    id: string;
-    name: string;
-    role: UserRole;
-}
 
 const SECTIONS = [
     {
@@ -24,7 +17,7 @@ const LOCAL_STORAGE_KEY = "dashboard_section_visibility";
 const LOCAL_STORAGE_LAYOUT = "dashboard_layout";
 
 export default function DashboardPage() {
-    const [user, setUser] = useState<User | null>(null);
+    const [user, setUser] = useState<any | null>(null);
     const [enabledSections, setEnabledSections] = useState<Record<string, boolean>>(
         {}
     );
@@ -33,13 +26,27 @@ export default function DashboardPage() {
     const settingsRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
-        // Simulate user fetch
-        const simulatedUser: User = {
-            id: "123",
-            name: "Simon Smith",
-            role: "admin",
+        const fetchUser = async () => {
+            const {
+                data: { session },
+            } = await supabase.auth.getSession();
+
+            if (!session?.user) return;
+
+            const { data, error } = await supabase
+                .from("members")
+                .select("*")
+                .eq("id", session.user.id)
+                .single();
+
+            if (error) {
+                console.error("Error fetching member:", error.message);
+            } else {
+                setUser(data);
+            }
         };
-        setUser(simulatedUser);
+
+        fetchUser();
 
         // Load saved prefs
         const savedPrefsRaw = localStorage.getItem(LOCAL_STORAGE_KEY);
@@ -48,9 +55,6 @@ export default function DashboardPage() {
         } else {
             // Default enable permitted sections
             const defaultPrefs: Record<string, boolean> = {};
-            SECTIONS.forEach((s) => {
-                defaultPrefs[s.id] = s.permission.includes(simulatedUser.role);
-            });
             setEnabledSections(defaultPrefs);
         }
 
@@ -137,7 +141,7 @@ export default function DashboardPage() {
             {/* Floating settings button + dropdown */}
             <div
                 ref={settingsRef}
-                className="fixed top-6 right-6 z-50"
+                className="fixed top-[4.5rem] right-6 z-50"
                 aria-label="Dashboard Settings"
             >
                 <button
@@ -237,7 +241,7 @@ export default function DashboardPage() {
                 <h1 className="sr-only">Dashboard</h1>
                 <p className="mb-6 w-full p-6 text-gray-300 max-w-xl">
                     Welcome,{" "}
-                    <span className="text-red-500 font-semibold">{user.name}</span>!
+                    <span className="text-red-500 font-semibold">{user.email}</span>!
                 </p>
 
                 {/* Render enabled sections */}
