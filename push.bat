@@ -3,4 +3,4 @@ git add .
 git commit -m "Globally Uncommented Development Update"
 git branch -M main
 git remote add origin git@github.com:cctechteam/Tech-Media-Hub.git
-git push -u origin main
+git push -u origin main --force
