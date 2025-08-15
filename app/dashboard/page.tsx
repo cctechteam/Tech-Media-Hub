@@ -174,7 +174,7 @@ export default function DashboardPage() {
                                                 {ValueToRole(user.role) === "admin" && (
                                                     <button className="text-gray-500 rounded-lg text-sm hover:text-red-700 transition-colors" onClick={() => {
                                                         deleteAnnouncement(announcement.id);
-                                                        doReloadAnnouncements();
+                                                        window.setTimeout(() => doReloadAnnouncements(), 2000);
                                                     }
                                                     }>
                                                         <FaTrash className="inline-block mr-2" />
