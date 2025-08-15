@@ -75,9 +75,9 @@ export default function DashboardPage() {
     const settingsRef = useRef<HTMLDivElement>(null);
 
     const [creatingAnnouncement, setCreatingAnnouncement] = useState(false);
-    const [reloadAnnouncements, setReloadAnnouncements] = useState(0);
+    const [reloadAnnouncements, setReloadAnnouncements] = useState(false);
 
-    const doReloadAnnouncements = () => setReloadAnnouncements(prev => prev++ % 1000);
+    const doReloadAnnouncements = () => setReloadAnnouncements(prev => !prev);
 
     useEffect(() => {
         fetchCurrentUser(setUser);
