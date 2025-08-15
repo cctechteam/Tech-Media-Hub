@@ -1,7 +1,29 @@
 import { redirect } from "next/navigation";
 import { supabase } from "./database";
 
+export type Role = "admin" | "supervisor" | "member" | "guest";
 
+// Assign numeric values to roles
+const RoleValue: { [role in Role]: number } = {
+    admin: 3,
+    supervisor: 2,
+    member: 1,
+    guest: 0,
+};
+
+// Convert Role to numeric value
+export function RoleToValue(role: Role): number {
+    return RoleValue[role];
+}
+
+// Convert numeric value back to Role
+export function ValueToRole(roleValue: number): Role {
+    const entry = Object.entries(RoleValue).find(([_, value]) => value === roleValue);
+    if (!entry) throw new Error(`Invalid role value: ${roleValue}`);
+    return entry[0] as Role;
+}
+
+// Fetches the corresponing record from public.members whose id matchs current session user
 export async function fetchCurrentUser(setUser: (value: any) => void) {
     const {
         data: { session },
@@ -22,4 +44,49 @@ export async function fetchCurrentUser(setUser: (value: any) => void) {
     } else {
         setUser(data);
     }
+}
+
+// Fetches all records from public.announcements
+export async function fetchAnnouncements(setAnnouncements: (value: any) => void) {
+    const { data, error } = await supabase
+        .from("announcements")
+        .select("*");
+
+    if (error) {
+        console.error("Error fetching announcements:", error.message);
+    } else {
+        setAnnouncements(data);
+    }
+}
+
+// Add a record from public.announcements
+export async function createAnnouncement(title: string, priority: string, content: string) {
+    const { error } = await supabase
+        .from("announcements")
+        .insert({ title, priority, content });
+
+    if (error) {
+        console.error("Error creating announcement:", error.message);
+    }
+}
+
+// Add a record from public.announcements
+export async function deleteAnnouncement(id: number) {
+    const { error } = await supabase
+        .from("announcements")
+        .delete()
+        .eq("id", id);
+
+    if (error) {
+        console.error("Error creating announcement:", error.message);
+    }
+}
+
+// e.g. "15/08/2025"
+export function formatDate(date: any) {
+    const d = new Date(date);
+    const day = String(d.getDate()).padStart(2, "0");
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const year = d.getFullYear();
+    return `${day}/${month}/${year}`;
 }
