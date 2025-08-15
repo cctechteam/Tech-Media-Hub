@@ -62,7 +62,7 @@ export default function Footer() {
 
                 {/* Divider */}
                 <div className="border-t border-gray-700 mt-8 pt-6 text-center text-sm text-gray-500">
-                    © 2025 Campion College Technology and Media Production. All rights reserved. |{" "}
+                    © 2025 Campion College. All rights reserved. |{" "}
                     <a href="#" className="hover:text-white">Privacy Policy</a> |{" "}
                     <a href="#" className="hover:text-white">Terms of Service</a>
                 </div>

@@ -2,17 +2,25 @@
 
 import Navbar from "@/components/navbar";
 import { supabase } from "@/lib/database";
+import { fetchCurrentUser } from "@/lib/utils";
 import { redirect } from "next/navigation";
 import { useEffect, useState, useRef } from "react";
 
-const SECTIONS = [
-    {
-        id: "tasks",
-        title: "Tasks",
-        description: "Your personal and team tasks.",
-        permission: ["admin", "member", "guest"],
-    },
-];
+const SECTIONS: {
+    id: string;
+    title: string;
+    description: string;
+    permission: string[];
+}[] = [
+        /*
+        {
+            id: "",
+            title: "",
+            description: "",
+            permission: ["admin", "member", "guest"],
+        },
+        */
+    ];
 
 const LOCAL_STORAGE_KEY = "dashboard_section_visibility";
 const LOCAL_STORAGE_LAYOUT = "dashboard_layout";
@@ -27,29 +35,7 @@ export default function DashboardPage() {
     const settingsRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
-        const fetchUser = async () => {
-            const {
-                data: { session },
-            } = await supabase.auth.getSession();
-
-            if (!session?.user) {
-                redirect("/auth/login");
-            }
-
-            const { data, error } = await supabase
-                .from("members")
-                .select("*")
-                .eq("id", session.user.id)
-                .single();
-
-            if (error) {
-                console.error("Error fetching member:", error.message);
-            } else {
-                setUser(data);
-            }
-        };
-
-        fetchUser();
+        fetchCurrentUser(setUser);
 
         // Load saved prefs
         const savedPrefsRaw = localStorage.getItem(LOCAL_STORAGE_KEY);
@@ -123,23 +109,6 @@ export default function DashboardPage() {
     return (
         <>
             <Navbar />
-
-            <style>{`
-        /* Stylish techy animated background */
-        @keyframes gradientShift {
-          0% { background-position: 0% 50%; }
-          50% { background-position: 100% 50%; }
-          100% { background-position: 0% 50%; }
-        }
-        body,html,#__next {
-          height: 100%;
-          margin: 0;
-          font-family: Arial, sans-serif;
-          background: linear-gradient(-45deg, #1a1a1a, #2a2a2a, #151515, #272727);
-          background-size: 400% 400%;
-          animation: gradientShift 20s ease infinite;
-        }
-      `}</style>
 
             {/* Floating settings button + dropdown */}
             <div
@@ -242,9 +211,9 @@ export default function DashboardPage() {
                 aria-label="Dashboard main content"
             >
                 <h1 className="sr-only">Dashboard</h1>
-                <p className="mb-6 w-full p-6 text-gray-300 max-w-xl">
+                <p className="mb-6 w-full p-6 text-gray-700 max-w-xl">
                     Welcome,{" "}
-                    <span className="text-red-500 font-semibold">{user.email}</span>!
+                    <span className="text-red-500 font-semibold">{user.full_name ?? "~Unknown"}</span>!
                 </p>
 
                 {/* Render enabled sections */}
@@ -253,8 +222,6 @@ export default function DashboardPage() {
                         ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
                         : "flex flex-col"
                         } w-full min-h-screen`}
-
-                    style={{ backgroundColor: "#101828FF" }}
                 >
                     {SECTIONS.filter(
                         (section) =>

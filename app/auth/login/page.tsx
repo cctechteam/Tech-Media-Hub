@@ -5,6 +5,8 @@ import { supabase } from "@/lib/database";
 import { useRouter } from "next/navigation";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
+import Image from "next/image";
+import CampionBanner from "../../../res/images/CampionBanner.png";
 
 export default function LoginPage() {
     const router = useRouter();
@@ -40,9 +42,14 @@ export default function LoginPage() {
             {/* Form Section */}
             <section className="w-full py-12 px-6 md:px-16 lg:px-24 flex justify-center">
                 <div className="p-8 rounded-2xl shadow-lg w-full max-w-md">
-                    <h1 className="text-3xl font-bold text-red-500 mb-6 text-center">
-                        Login
-                    </h1>
+                    <div className="w-full flex pb-4 justify-center pointer-events-none">
+                        <Image
+                            src={CampionBanner}
+                            alt="Campion Banner"
+                            className="w-[70%] aspect-auto"
+                        />
+                    </div>
+
                     <form onSubmit={handleLogin} className="space-y-4">
                         <input
                             type="email"
