@@ -160,6 +160,10 @@ export default function DashboardPage() {
                                 )}
                             </div>
                             <div className="space-y-3 max-h-64 overflow-y-auto">
+                                {announcements.length == 0 && <div className="w-full flex justify-center">
+                                    <h4 className="font-light text-gray-800">Nothing to see here.</h4>
+                                </div>}
+
                                 {announcements.map((announcement: any) => (
                                     <div key={announcement.id} className={`p-3 rounded-lg border-l-4 ${announcement.priority === 'high' ? 'border-red-400 bg-red-50' :
                                         announcement.priority === 'medium' ? 'border-yellow-400 bg-yellow-50' :
