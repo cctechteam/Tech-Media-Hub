@@ -132,7 +132,9 @@ export default function DashboardPage() {
     }, [settingsOpen]);
 
     useEffect(() => {
-        fetchAnnouncements(setAnnouncements);
+        window.setTimeout(() => {
+            fetchAnnouncements(setAnnouncements);
+        }, 2000);
     }, [creatingAnnouncement, reloadAnnouncements])
 
     if (!user) {
