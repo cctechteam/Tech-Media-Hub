@@ -23,8 +23,14 @@ export function ValueToRole(roleValue: number): Role {
     return entry[0] as Role;
 }
 
+// Determines if a role is admin or not
+export function IsAdmin(role: Role | number): boolean {
+    const _role = typeof role === "string" ? role : ValueToRole(role);
+    return _role === "admin";
+}
+
 // Fetches the corresponing record from public.members whose id matchs current session user
-export async function fetchCurrentUser(setUser: (value: any) => void) {
+export async function fetchCurrentUser(setUser: (value?: any) => void, setOnError = false) {
     const {
         data: { session },
     } = await supabase.auth.getSession();
@@ -41,8 +47,23 @@ export async function fetchCurrentUser(setUser: (value: any) => void) {
 
     if (error) {
         console.error("Error fetching member:", error.message);
+        if (setOnError)
+            setUser(undefined)
     } else {
         setUser(data);
+    }
+}
+
+// Fetches all records from public.members
+export async function fetchUsers(setUsers: (value: any) => void) {
+    const { data, error } = await supabase
+        .from("members")
+        .select("*");
+
+    if (error) {
+        console.error("Error fetching members:", error.message);
+    } else {
+        setUsers(data);
     }
 }
 

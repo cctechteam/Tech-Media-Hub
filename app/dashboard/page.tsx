@@ -2,10 +2,12 @@
 
 import Footer from "@/components/footer";
 import Navbar from "@/components/navbar";
-import { deleteAnnouncement, fetchAnnouncements, fetchCurrentUser, formatDate, Role, ValueToRole } from "@/lib/utils";
+import { deleteAnnouncement, fetchAnnouncements, fetchCurrentUser, formatDate, IsAdmin, Role, ValueToRole } from "@/lib/utils";
 import { useState, useEffect, useRef } from "react";
 import CreateAnnouncementPopup from "./announcements";
 import { FaTrash } from "react-icons/fa";
+import { CreateNavLink, NavLink, RenderNavLinks } from "@/components/navlinks";
+import UserLoading from "@/components/userloading";
 
 const SECTIONS: {
     id: string,
@@ -36,30 +38,6 @@ const SECTIONS: {
             title: "Team Communication",
             description: "Messages and discussion boards",
             permission: ["admin", "supervisor", "member"],
-        },
-        {
-            id: "members",
-            title: "Member Directory",
-            description: "Team member contacts and roles",
-            permission: ["admin", "supervisor"],
-        },
-        {
-            id: "reports",
-            title: "Reports & Analytics",
-            description: "Performance metrics and insights",
-            permission: ["admin", "supervisor"],
-        },
-        {
-            id: "settings",
-            title: "System Settings",
-            description: "Configure system preferences",
-            permission: ["admin"],
-        },
-        {
-            id: "user-management",
-            title: "User Management",
-            description: "Manage user roles and permissions",
-            permission: ["admin"],
         },
     ];
 
@@ -137,11 +115,8 @@ export default function DashboardPage() {
         }, 2000);
     }, [creatingAnnouncement, reloadAnnouncements])
 
-    if (!user) {
-        return (
-            <main className="p-8 text-center text-gray-400">Loading user info...</main>
-        );
-    }
+    if (!user)
+        return <UserLoading />;
 
     function toggleSection(id: any) {
         setEnabledSections((prev: any) => ({ ...prev, [id]: !prev[id] }));
@@ -299,113 +274,6 @@ export default function DashboardPage() {
                         </div>
                     </div>
                 );
-
-            case "members":
-                return (
-                    <div className="h-full">
-                        <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-xl font-bold text-teal-800">👥 Member Directory</h3>
-                            <button className="px-3 py-1 bg-teal-600 text-white rounded-lg text-sm hover:bg-teal-700 transition-colors">
-                                Manage
-                            </button>
-                        </div>
-                        <div className="space-y-3">
-                            {["John Smith (Admin)", "Jane Doe (Supervisor)", "Mike Smith (Member)", "Sarah Wilson (Member)"].map((member, idx) => (
-                                <div key={idx} className="flex items-center gap-3 p-2 bg-white border border-gray-200 rounded-lg">
-                                    <div className="w-8 h-8 bg-teal-600 rounded-full flex items-center justify-center text-white text-sm font-bold">
-                                        {member.split(" ").map(n => n[0]).join("")}
-                                    </div>
-                                    <div className="flex-1">
-                                        <p className="font-medium text-gray-800">{member}</p>
-                                        <div className="flex gap-2">
-                                            <span className="w-2 h-2 bg-green-500 rounded-full mt-1.5"></span>
-                                            <span className="text-xs text-gray-500">Online</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                );
-
-            case "reports":
-                return (
-                    <div className="h-full">
-                        <h3 className="text-xl font-bold text-orange-800 mb-4">📊 Reports & Analytics</h3>
-                        <div className="grid grid-cols-2 gap-4 mb-4">
-                            <div className="p-3 bg-orange-50 border border-orange-200 rounded-lg text-center">
-                                <div className="text-2xl font-bold text-orange-800">24</div>
-                                <div className="text-sm text-orange-600">Active Tasks</div>
-                            </div>
-                            <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg text-center">
-                                <div className="text-2xl font-bold text-blue-800">8</div>
-                                <div className="text-sm text-blue-600">Events This Month</div>
-                            </div>
-                        </div>
-                        <div className="p-3 bg-white border border-gray-200 rounded-lg">
-                            <p className="font-semibold text-gray-800 mb-2">Team Performance</p>
-                            <div className="w-full bg-gray-200 rounded-full h-2 mb-1">
-                                <div className="bg-green-600 h-2 rounded-full" style={{ width: '78%' }}></div>
-                            </div>
-                            <p className="text-sm text-gray-600">78% completion rate</p>
-                        </div>
-                    </div>
-                );
-
-            case "settings":
-                return (
-                    <div className="h-full">
-                        <h3 className="text-xl font-bold text-gray-800 mb-4">⚙️ System Settings</h3>
-                        <div className="space-y-3">
-                            <div className="p-3 bg-white border border-gray-200 rounded-lg">
-                                <h4 className="font-semibold text-gray-800 mb-2">Notification Preferences</h4>
-                                <label className="flex items-center gap-2">
-                                    <input type="checkbox" defaultChecked className="accent-blue-600" />
-                                    <span className="text-sm text-gray-600">Email notifications</span>
-                                </label>
-                            </div>
-                            <div className="p-3 bg-white border border-gray-200 rounded-lg">
-                                <h4 className="font-semibold text-gray-800 mb-2">System Backup</h4>
-                                <button className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700 transition-colors">
-                                    Create Backup
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                );
-
-            case "user-management":
-                return (
-                    <div className="h-full">
-                        <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-xl font-bold text-red-800">🔐 User Management</h3>
-                            <button className="px-3 py-1 bg-red-600 text-white rounded-lg text-sm hover:bg-red-700 transition-colors">
-                                + Add User
-                            </button>
-                        </div>
-                        <div className="space-y-3">
-                            <div className="p-3 bg-white border border-gray-200 rounded-lg">
-                                <div className="flex justify-between items-center">
-                                    <div>
-                                        <p className="font-semibold text-gray-800">Jane Doe</p>
-                                        <p className="text-sm text-gray-600">Supervisor</p>
-                                    </div>
-                                    <button className="text-red-600 hover:text-red-800 text-sm">Edit</button>
-                                </div>
-                            </div>
-                            <div className="p-3 bg-white border border-gray-200 rounded-lg">
-                                <div className="flex justify-between items-center">
-                                    <div>
-                                        <p className="font-semibold text-gray-800">Mike Smith</p>
-                                        <p className="text-sm text-gray-600">Member</p>
-                                    </div>
-                                    <button className="text-red-600 hover:text-red-800 text-sm">Edit</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                );
-
             default:
                 return null;
         }
@@ -413,6 +281,11 @@ export default function DashboardPage() {
 
     const permittedSections = SECTIONS.filter(section => section.permission.includes(ValueToRole(user.role)));
     const enabledPermittedSections = permittedSections.filter(section => enabledSections[section.id]);
+
+    const navlinks: NavLink[] = [];
+
+    if (IsAdmin(user.role))
+        navlinks.push(CreateNavLink("Manage Members", "/dashboard/members"));
 
     return (<>
         <Navbar />
@@ -431,6 +304,11 @@ export default function DashboardPage() {
                                 {ValueToRole(user.role).charAt(0).toUpperCase() + ValueToRole(user.role).slice(1)}
                             </span>
                         </div>
+
+                        <div className="flex items-center gap-4">
+                            <RenderNavLinks links={navlinks} />
+                        </div>
+
                         <div className="flex items-center gap-4">
                             <span className="text-red-600">Welcome, <strong>{user.full_name ?? "~Unknown~"}</strong></span>
                         </div>
