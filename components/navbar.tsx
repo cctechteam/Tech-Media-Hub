@@ -7,6 +7,7 @@ import { supabase } from "@/lib/database";
 import { redirect } from "next/navigation";
 import { CombineNavLinks, CreateNavLink, NavLink, RenderNavLinks } from "./navlinks";
 import { fetchCurrentUser } from "@/lib/utils";
+import { useRouter } from "next/router";
 
 const Navlinks: NavLink[] = CombineNavLinks(
     CreateNavLink("Home", "/"),
@@ -27,19 +28,15 @@ export default function Navbar() {
     const [user, setUser] = useState<any | null>(null);
 
     useEffect(() => {
-        supabase.auth.getSession().then(({ data }) => {
-            fetchCurrentUser((cuser) => {
-                if (cuser)
-                    setUser(cuser ?? null);
-                else
-                    handleLogout();
-            }, true)
-        });
+        fetchCurrentUser((cuser) => {
+            setUser(cuser ?? null);
+        }, true, window.location.pathname != "/auth/signup" && window.location.pathname != "/auth/login");
 
         const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
-            const userStored = user;
             setUser(session?.user ?? null);
-            if (userStored && session?.user == null) redirect("/auth/login");
+            if (_event == "SIGNED_OUT") {
+                redirect("/auth/login");
+            }
         });
 
         return () => {

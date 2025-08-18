@@ -30,13 +30,16 @@ export function IsAdmin(role: Role | number): boolean {
 }
 
 // Fetches the corresponing record from public.members whose id matchs current session user
-export async function fetchCurrentUser(setUser: (value?: any) => void, setOnError = false) {
+export async function fetchCurrentUser(setUser: (value?: any) => void, setOnError = false, redirectToLogin = true) {
     const {
         data: { session },
     } = await supabase.auth.getSession();
 
     if (!session?.user) {
-        redirect("/auth/login");
+        if (redirectToLogin)
+            redirect("/auth/login");
+        else if (setOnError)
+            setUser(undefined);
     }
 
     const { data, error } = await supabase
