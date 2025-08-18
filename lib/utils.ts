@@ -45,7 +45,7 @@ export async function fetchCurrentUser(setUser: (value?: any) => void, setOnErro
     const { data, error } = await supabase
         .from("members")
         .select("*")
-        .eq("id", session.user.id)
+        .eq("id", session!.user.id)
         .single();
 
     if (error) {
