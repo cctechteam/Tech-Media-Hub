@@ -9,7 +9,8 @@ type AttendanceFormData = {
     beedleEmail: string;
     gradeLevel: string;
     className: string;
-    classTime: string;
+    classStartTime: string;
+    classEndTime: string;
     date: string;
     teacher: string;
     subject: string;
@@ -26,7 +27,8 @@ export default function BeedleAttendancePage() {
         beedleEmail: "",
         gradeLevel: "",
         className: "",
-        classTime: "",
+        classStartTime: "",
+        classEndTime: "",
         date: "",
         teacher: "",
         subject: "",
@@ -97,6 +99,11 @@ export default function BeedleAttendancePage() {
     };
 
     const handleSubmit = () => {
+        if (formData.classEndTime <= formData.classStartTime) {
+        alert("End time must be later than start time.");
+        return;
+    }
+    
         console.log("Student attendance submitted:", formData);
         alert("Attendance form submitted successfully!");
     };
@@ -106,7 +113,8 @@ export default function BeedleAttendancePage() {
             beedleEmail: "",
             gradeLevel: "",
             className: "",
-            classTime: "",
+            classStartTime: "",
+            classEndTime: "",
             date: "",
             teacher: "",
             subject: "",
@@ -251,18 +259,34 @@ export default function BeedleAttendancePage() {
                                         </select>
                                     </div>
                                     <div>
-                                        <label htmlFor="teacherArrivalTime" className="block text-sm font-medium text-purple-700 mb-2">
-                                            Class Time *
+                                        <label htmlFor="classStartTime" className="block text-sm font-medium text-purple-700 mb-2">
+                                            Class Start Time *
                                         </label>
                                         <input
                                             type="time"
-                                            id="classTime"
-                                            name="classTime"
-                                            value={formData.classTime}
+                                            id="classStartTime"
+                                            name="classStartTime"
+                                            value={formData.classStartTime}
                                             onChange={handleInputChange}
+                                            required
                                             className="w-full px-4 py-2 bg-white border border-purple-300 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                                         />
                                     </div>
+                                    <div>
+                                        <label htmlFor="classEndTime" className="block text-sm font-medium text-purple-700 mb-2">
+                                            Class End Time *
+                                        </label>
+                                        <input
+                                            type="time"
+                                            id="classEndTime"
+                                            name="classEndTime"
+                                            value={formData.classEndTime}
+                                            onChange={handleInputChange}
+                                            required
+                                            className="w-full px-4 py-2 bg-white border border-purple-300 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                        />
+                                    </div>
+
                                 </div>
                             </div>
 
