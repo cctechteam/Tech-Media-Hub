@@ -22,8 +22,8 @@ const resourcesData: Resource[] = [
     lastUpdated: "2025-08-11",
     preparedBy: "CC Tech Team",
     category: "Guides",
-    link: "/docs/accessing-canvas.pdf",
-    image: "/imgs/sample.png"
+    link: "/resources/docs/sample.pdf",
+    image: "/resources/imgs/sample.png"
   },
   {
     id: 2,
@@ -32,8 +32,8 @@ const resourcesData: Resource[] = [
     lastUpdated: "2025-08-11",
     preparedBy: "CC Tech Team",
     category: "Policies",
-    link: "/docs/tech-rules.pdf",
-    image: "/imgs/sample.png"
+    link: "/resources/docs/sample.pdf",
+    image: "/resources/imgs/sample.png"
   },
   {
     id: 3,
@@ -42,8 +42,8 @@ const resourcesData: Resource[] = [
     lastUpdated: "2025-08-11",
     preparedBy: "CC Tech Team",
     category: "Guides",
-    link: "/docs/accessing-facts.pdf",
-    image: "/imgs/sample.png"
+    link: "/resources/docs/sample.pdf",
+    image: "/resources/imgs/sample.png"
   }
 ];
 
@@ -58,7 +58,7 @@ export default function ResourcesPage() {
       : resourcesData.filter(r => r.category === selectedCategory);
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 text-gray-800">
+    <main className="min-h-screen bg-gradient-to-br from-red-50 via-white to-indigo-50 text-gray-800">
       <Navbar />
       <section className="max-w-6xl mx-auto px-6 py-12">
         <div className="text-center mb-10">
@@ -76,8 +76,8 @@ export default function ResourcesPage() {
               onClick={() => setSelectedCategory(category)}
               className={`px-4 py-2 rounded-full border transition-colors ${
                 selectedCategory === category
-                  ? "bg-blue-600 text-white border-blue-600"
-                  : "bg-white text-blue-700 border-blue-300 hover:bg-blue-100"
+                  ? "bg-red-600 text-white border-red-600"
+                  : "bg-white text-red-700 border-red-300 hover:bg-red-100"
               }`}
             >
               {category}
@@ -103,23 +103,28 @@ export default function ResourcesPage() {
 
               {/* Content */}
               <div className="p-6 flex flex-col h-full">
-                <h2 className="text-xl font-semibold text-blue-800 mb-2">
+                <h2 className="text-xl font-semibold text-red-800 mb-2">
                   {resource.title}
                 </h2>
                 <p className="text-gray-600 mb-4 flex-grow">{resource.description}</p>
-                <div className="text-sm text-gray-500 mb-4">
-                  <span className="block">
-                    <strong>Last Updated:</strong> {resource.lastUpdated}
-                  </span>
-                  <span className="block">
-                    <strong>Prepared By:</strong> {resource.preparedBy}
-                  </span>
+
+                {/* Metadata Section styled like details */}
+                <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 mb-4 text-sm">
+                  <p className="mb-1">
+                    <strong className="text-gray-700">Prepared By:</strong>{" "}
+                    <span className="text-red-700 font-medium">{resource.preparedBy}</span>
+                  </p>
+                  <p>
+                    <strong className="text-gray-700">Date Prepared:</strong>{" "}
+                    <span className="text-red-700 font-medium">{resource.lastUpdated}</span>
+                  </p>
                 </div>
+
                 <a
                   href={resource.link}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-block mt-auto px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
+                  className="inline-block mt-auto px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg transition-colors"
                 >
                   Access Resource
                 </a>
