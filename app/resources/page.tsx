@@ -22,8 +22,8 @@ const resourcesData: Resource[] = [
     lastUpdated: "2025-08-11",
     preparedBy: "CC Tech Team",
     category: "Guides",
-    link: "/resources/docs/sample.pdf",
-    image: "/resources/imgs/sample.png"
+    link: "TO DO",
+    image: "TO DO"
   },
   {
     id: 2,
@@ -32,8 +32,8 @@ const resourcesData: Resource[] = [
     lastUpdated: "2025-08-11",
     preparedBy: "CC Tech Team",
     category: "Policies",
-    link: "/resources/docs/sample.pdf",
-    image: "/resources/imgs/sample.png"
+    link: "TO DO",
+    image: "TO DO"
   },
   {
     id: 3,
@@ -62,7 +62,7 @@ export default function ResourcesPage() {
       <Navbar />
       <section className="max-w-6xl mx-auto px-6 py-12">
         <div className="text-center mb-10">
-          <h1 className="text-4xl font-bold text-blue-900">School Resources</h1>
+          <h1 className="text-4xl font-bold text-red-900">School Resources</h1>
           <p className="text-gray-600 mt-2">
             Access important guides, policies, and forms prepared to enhance Campion Life.
           </p>
@@ -107,30 +107,12 @@ export default function ResourcesPage() {
                   {resource.title}
                 </h2>
                 <p className="text-gray-600 mb-4 flex-grow">{resource.description}</p>
-
-                {/* Metadata Section styled like details */}
-                <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 mb-4 text-sm">
-                  <p className="mb-1">
-                    <strong className="text-gray-700">Prepared By:</strong>{" "}
-                    <span className="text-red-700 font-medium">{resource.preparedBy}</span>
-                  </p>
-                  <p>
-                    <strong className="text-gray-700">Date Prepared:</strong>{" "}
-                    <span className="text-red-700 font-medium">{resource.lastUpdated}</span>
-                  </p>
-                </div>
-
-                <a
-                  href={resource.link}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-block mt-auto px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg transition-colors"
-                >
-                  Access Resource
-                </a>
+                <br>
+                <p className="text-red-500 mb-4 flex-grow">Prepared By: {resource.preparedBy}</p>
+                <p className="text-red-500 mb-4 flex-grow">Date Prepared: {resource.lastUpdated}</p>
               </div>
             </div>
-          ))}
+           }
         </div>
       </section>
       <Footer />
