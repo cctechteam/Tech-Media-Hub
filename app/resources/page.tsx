@@ -42,8 +42,8 @@ const resourcesData: Resource[] = [
     lastUpdated: "2025-08-11",
     preparedBy: "CC Tech Team",
     category: "Guides",
-    link: "/resources/docs/sample.pdf",
-    image: "/resources/imgs/sample.png"
+    link: "TO DO",
+    image: "TO DO"
   }
 ];
 
@@ -57,65 +57,77 @@ export default function ResourcesPage() {
       ? resourcesData
       : resourcesData.filter(r => r.category === selectedCategory);
 
-  return (
-    <main className="min-h-screen bg-gradient-to-br from-red-50 via-white to-indigo-50 text-gray-800">
-      <Navbar />
-      <section className="max-w-6xl mx-auto px-6 py-12">
-        <div className="text-center mb-10">
-          <h1 className="text-4xl font-bold text-red-900">School Resources</h1>
-          <p className="text-gray-600 mt-2">
-            Access important guides, policies, and forms prepared to enhance Campion Life.
-          </p>
-        </div>
+return (
+  <main className="min-h-screen bg-gradient-to-br from-red-50 via-white to-indigo-50 text-gray-800">
+    <Navbar />
+    <section className="max-w-6xl mx-auto px-6 py-12">
+      <div className="text-center mb-10">
+        <h1 className="text-4xl font-bold text-red-900">School Resources</h1>
+        <p className="text-gray-600 mt-2">
+          Access important guides, policies, and forms prepared to enhance Campion Life.
+        </p>
+      </div>
 
-        {/* Category Filter */}
-        <div className="flex justify-center mb-8 gap-3 flex-wrap">
-          {categories.map(category => (
-            <button
-              key={category}
-              onClick={() => setSelectedCategory(category)}
-              className={`px-4 py-2 rounded-full border transition-colors ${
-                selectedCategory === category
-                  ? "bg-red-600 text-white border-red-600"
-                  : "bg-white text-red-700 border-red-300 hover:bg-red-100"
-              }`}
-            >
-              {category}
-            </button>
-          ))}
-        </div>
+      {/* Category Filter */}
+      <div className="flex justify-center mb-8 gap-3 flex-wrap">
+        {categories.map(category => (
+          <button
+            key={category}
+            onClick={() => setSelectedCategory(category)}
+            className={`px-4 py-2 rounded-full border transition-colors ${
+              selectedCategory === category
+                ? "bg-red-600 text-white border-red-600"
+                : "bg-white text-red-700 border-red-300 hover:bg-red-100"
+            }`}
+          >
+            {category}
+          </button>
+        ))}
+      </div>
 
-        {/* Resource Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredResources.map(resource => (
-            <div
-              key={resource.id}
-              className="bg-white rounded-2xl shadow-md border border-gray-200 overflow-hidden hover:shadow-lg transition"
-            >
-              {/* Image */}
-              <div className="h-40 w-full overflow-hidden">
-                <img
-                  src={resource.image}
-                  alt={resource.title}
-                  className="h-full w-full object-cover"
-                />
-              </div>
-
-              {/* Content */}
-              <div className="p-6 flex flex-col h-full">
-                <h2 className="text-xl font-semibold text-red-800 mb-2">
-                  {resource.title}
-                </h2>
-                <p className="text-gray-600 mb-4 flex-grow">{resource.description}</p>
-                <br>
-                <p className="text-red-500 mb-4 flex-grow">Prepared By: {resource.preparedBy}</p>
-                <p className="text-red-500 mb-4 flex-grow">Date Prepared: {resource.lastUpdated}</p>
-              </div>
+      {/* Resource Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {filteredResources.map(resource => (
+          <div
+            key={resource.id}
+            className="bg-white rounded-2xl shadow-md border border-gray-200 overflow-hidden hover:shadow-lg transition"
+          >
+            {/* Image */}
+            <div className="h-40 w-full overflow-hidden">
+              <img
+                src={resource.image}
+                alt={resource.title}
+                className="h-full w-full object-cover"
+              />
             </div>
-           }
-        </div>
-      </section>
-      <Footer />
-    </main>
-  );
+
+            {/* Content */}
+            <div className="p-6 flex flex-col h-full">
+              <h2 className="text-xl font-semibold text-red-800 mb-2">
+                {resource.title}
+              </h2>
+              <p className="text-gray-600 mb-4 flex-grow">{resource.description}</p>
+
+              {/* Metadata */}
+              <p className="text-red-500 mb-2">Prepared By: {resource.preparedBy}</p>
+              <p className="text-red-500 mb-4">Date Prepared: {resource.lastUpdated}</p>
+
+              {/* Access Button */}
+              <a
+                href={resource.link}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-block mt-auto px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg transition-colors"
+              >
+                Access Resource
+              </a>
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+    <Footer />
+  </main>
+);
+
 }
