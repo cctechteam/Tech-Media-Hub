@@ -17,8 +17,7 @@ const Navlinks: NavLink[] = CombineNavLinks(
         CreateNavLink("Faculty", "https://www.campioncollege.com/?p=faculty")
     ]),
     CreateNavLink("Student", undefined, [
-        CreateNavLink("Policies", "https://www.campioncollege.com/?p=policies"),
-        CreateNavLink("Clubs & Societies", "https://www.campioncollege.com/?p=clubs_sports"),
+        CreateNavLink("Resources", "/resources"),
         CreateNavLink("Beedle Report", "/beedle")
     ]),
     CreateNavLink("Contact", "#contact")
