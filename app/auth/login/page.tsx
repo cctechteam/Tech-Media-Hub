@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 import Image from "next/image";
-import CampionBanner from "../../../res/images/CampionBanner.png";
+import CampionBanner from "../../../res/images/Campion_Logo.png";
 
 export default function LoginPage() {
     const router = useRouter();
