@@ -2,7 +2,7 @@
 import Footer from "@/components/footer";
 import Navbar from "@/components/navbar";
 import { fetchCurrentUser } from "@/lib/utils";
-import Image from "next/image";
+
 import { useEffect, useState } from "react";
 
 type AttendanceFormData = {
@@ -37,89 +37,64 @@ export default function BeedleAttendancePage() {
     homeworkGiven: "",
     studentsPresent: "",
     absentStudents: [""],
-    lateStudents: [""],
+    lateStudents: [""]
   });
 
   useEffect(() => {
     fetchCurrentUser((user: any) => {
-      setFormData((prev) => ({
+      setFormData(prev => ({
         ...prev,
-        beedleEmail: user?.email ?? "",
+        "beedleEmail": user?.email ?? ""
       }));
     });
-  }, []);
+  }, [])
 
   const gradeLevels = [
-    "1st Form",
-    "2nd Form",
-    "3rd Form",
-    "4th Form",
-    "5th Form",
-    "Lower Sixth (6B)",
-    "Upper Sixth (6A)",
+    "1st Form", "2nd Form", "3rd Form", "4th Form", "5th Form", "6B", "6A"
   ];
 
   const teachers = [
-    "Ms E. Alexander","Dr C. Allen-Pearson","Mr D. Anderson","Mr K. Anthony",
-    "Ms K. Armstrong","Mrs D. Atkinson Brown","Ms N. Barnett","Mrs B. Barrett",
-    "Ms S. Barton","Ms C. Bennett","Mr N. Bennett","Ms K. Bowen","Mr B. Burnett",
-    "Mr D. Cameron","Mr T. Caramulla","Mr K. Chin","Mrs N. Chintersingh",
-    "Mr D. Clarke","Ms J. Coke","Mr K. Coke","Mrs S. Cole-Smith","Ms J. Collins",
-    "Ms A. Cooke","Mr C. Davis","Mrs D. Deacon-Jones","Ms L. Deslandes",
-    "Mrs N. Fearon-Johnson","Ms S. Ffrench","Mrs D. Foote","Mr D. Foster",
-    "Ms M. Garrick","Mrs D. Gordon Taylor","Mrs H. Gordon","Ms S. Gordon",
-    "Ms C. Grant","Ms L. Green","Ms J. Harvey","Ms C. Haughton","Mrs A. Hay",
-    "Mr D. Henry","Ms S. Hitchener","Ms A. Holgate","Mr M. Jackson",
-    "Mrs L. James-Dobson","Ms J. Johnson","Mrs K. Jones","Mrs R. Julian",
-    "Mrs S. Kenny-Folkes","Mrs P. Kirby","Mr J. Ledgister","Ms A. Lynch",
-    "Mr R. McCreath","Ms M. Meeks","Mr I. Miller","Mr N. Milton","Ms P. Morris",
-    "Mrs K. Morrison","Fr D. Mullens","Mr S. Mundell","Mrs T. Myrie-Jones",
-    "Mrs T. Nicholson-Gordon","Ms M. Peterkin","Ms R. Quarrie","Mrs G. Rampair",
-    "Mrs C. Reid-Neil","Mr R. Robotham","Ms D. Rose","Ms F. Smith",
-    "Mrs A. Smith-Harris","Mr C. Soutar","Ms S. Spence","Mrs A. Spencer",
-    "Ms V. Stevenson","Ms Kathryn Stewart","Mrs V. Taylor-Smellie",
-    "Ms K. Thomas","Mr T. Voche II","Mr D. Walker","Ms G. Walker",
-    "Ms C. Walters","Mrs C. Webster","Mr N. Wilkins","Ms S. Williams",
-    "Mr C. Willis","Mrs S. Wint-Turner","Mrs R. Wray-Cooke","Mrs A. Yuffon"
+    "Ms. Johnson", "Mr. Smith", "Mrs. Davis", "Dr. Brown", "Ms. Wilson",
+    "Mr. Taylor", "Mrs. Anderson", "Ms. Thomas", "Mr. Jackson", "Mrs. White"
   ];
 
   const subjects = [
-    "Mathematics","English","Science","Social Studies","Art","Music",
-    "Physical Education","Computer Studies","Spanish","French"
+    "Mathematics", "English", "Science", "Social Studies", "Art", "Music",
+    "Physical Education", "Computer Studies", "Spanish", "French"
   ];
 
   const handleInputChange = (e: any) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
+    setFormData(prev => ({
       ...prev,
-      [name]: value,
+      [name]: value
     }));
   };
 
   const handleArrayChange = (field: keyof AttendanceFormData, index: number, value: any) => {
     if (Array.isArray(formData[field])) {
-      setFormData((prev) => ({
+      setFormData(prev => ({
         ...prev,
-        [field]: (prev[field] as string[]).map((item, i) =>
-          i === index ? value : item
-        ),
+        [field]: (prev[field] as string[]).map((item, i) => i === index ? value : item)
       }));
     }
   };
 
   const addArrayItem = (field: keyof AttendanceFormData) => {
-    setFormData((prev) => ({
+    setFormData(prev => ({
       ...prev,
-      [field]: [...prev[field], ""],
+      [field]: [...prev[field], ""]
     }));
   };
 
   const removeArrayItem = (field: keyof AttendanceFormData, index: any) => {
-    if (Array.isArray(formData[field]) && formData[field].length > 1) {
-      setFormData((prev) => ({
-        ...prev,
-        [field]: (prev[field] as string[]).filter((_, i) => i !== index),
-      }));
+    if (Array.isArray(formData[field])) {
+      if (formData[field].length > 1) {
+        setFormData(prev => ({
+          ...prev,
+          [field]: (prev[field] as string[]).filter((_, i) => i !== index)
+        }));
+      }
     }
   };
 
@@ -128,6 +103,7 @@ export default function BeedleAttendancePage() {
       alert("End time must be later than start time.");
       return;
     }
+
     console.log("Student attendance submitted:", formData);
     alert("Attendance form submitted successfully!");
   };
@@ -147,40 +123,26 @@ export default function BeedleAttendancePage() {
       homeworkGiven: "",
       studentsPresent: "",
       absentStudents: [""],
-      lateStudents: [""],
+      lateStudents: [""]
     });
   };
 
   return (
-    <main className="min-h-screen text-gray-800 bg-gradient-to-br from-red-50 via-white to-indigo-50 max-w-full mx-auto">
+    <main
+      className="min-h-screen text-gray-800 bg-gradient-to-br from-red-50 via-white to-indigo-50 relative z-10 max-w-full mx-auto"
+      aria-label="Beedle Attendance main content"
+    >
       <h1 className="sr-only">Beedle Student Attendance</h1>
       <Navbar />
 
-      <form
-        className="w-full min-h-screen px-4 py-8"
-        onSubmit={(e) => {
-          e.preventDefault();
-          handleSubmit();
-        }}
-      >
+      <form className="w-full min-h-screen px-4 py-8" onSubmit={(e) => {
+        e.preventDefault();
+        handleSubmit();
+      }}>
         <div className="max-w-4xl mx-auto">
           <div className="bg-white bg-opacity-95 backdrop-blur-sm rounded-lg shadow-lg border border-blue-100 p-8">
-            
-            {/* ✅ Logo */}
-            <div className="flex justify-center mb-6">
-              <Image
-                src="/images/Campion_Logo.png"
-                alt="School Logo"
-                width={120}
-                height={120}
-                className="h-20 w-auto"
-              />
-            </div>
-
             <div className="text-center mb-8">
-              <h2 className="text-3xl font-bold text-red-800 mb-2">
-                Student Attendance Form
-              </h2>
+              <h2 className="text-3xl font-bold text-red-800 mb-2">Student Attendance Form</h2>
               <p className="text-red-600">Class Beedle Session(s) Report</p>
             </div>
 
@@ -200,12 +162,12 @@ export default function BeedleAttendancePage() {
                       value={formData.beedleEmail}
                       required
                       readOnly
-                      className="w-full px-4 py-2 bg-white border border-blue-300 rounded-lg text-gray-800"
+                      className="w-full px-4 py-2 bg-white border border-blue-300 rounded-lg text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       placeholder="Loading..."
                     />
                   </div>
                   <div>
-                    <label htmlFor="gradeLevel" className="block text-sm font-medium text-blue-700 mb-2">
+                    <label htmlFor="className" className="block text-sm font-medium text-blue-700 mb-2">
                       Grade Level *
                     </label>
                     <select
@@ -214,7 +176,7 @@ export default function BeedleAttendancePage() {
                       value={formData.gradeLevel}
                       onChange={handleInputChange}
                       required
-                      className="w-full px-4 py-2 bg-white border border-blue-300 rounded-lg text-gray-800"
+                      className="w-full px-4 py-2 bg-white border border-blue-300 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     >
                       <option value="">Select Grade Level</option>
                       {gradeLevels.map((cls) => (
@@ -234,7 +196,7 @@ export default function BeedleAttendancePage() {
                       placeholder="4C / Homeroom"
                       onChange={handleInputChange}
                       required
-                      className="w-full px-4 py-2 bg-white border border-blue-300 rounded-lg text-gray-800"
+                      className="w-full px-4 py-2 bg-white border border-blue-300 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                   </div>
                   <div>
@@ -248,7 +210,7 @@ export default function BeedleAttendancePage() {
                       value={formData.date}
                       onChange={handleInputChange}
                       required
-                      className="w-full px-4 py-2 bg-white border border-blue-300 rounded-lg text-gray-800"
+                      className="w-full px-4 py-2 bg-white border border-blue-300 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                   </div>
                 </div>
@@ -269,7 +231,7 @@ export default function BeedleAttendancePage() {
                       value={formData.teacher}
                       onChange={handleInputChange}
                       required
-                      className="w-full px-4 py-2 bg-white border border-green-300 rounded-lg text-gray-800"
+                      className="w-full px-4 py-2 bg-white border border-green-300 rounded-lg text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
                       placeholder="Select or type teacher name"
                     />
                     <datalist id="teachers">
@@ -288,7 +250,7 @@ export default function BeedleAttendancePage() {
                       value={formData.subject}
                       onChange={handleInputChange}
                       required
-                      className="w-full px-4 py-2 bg-white border border-green-300 rounded-lg text-gray-800"
+                      className="w-full px-4 py-2 bg-white border border-green-300 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
                     >
                       <option value="">Select Subject</option>
                       {subjects.map((subject) => (
@@ -307,7 +269,7 @@ export default function BeedleAttendancePage() {
                       value={formData.classStartTime}
                       onChange={handleInputChange}
                       required
-                      className="w-full px-4 py-2 bg-white border border-green-300 rounded-lg text-gray-800"
+                      className="w-full px-4 py-2 bg-white border border-green-300 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
                     />
                   </div>
                   <div>
@@ -321,9 +283,10 @@ export default function BeedleAttendancePage() {
                       value={formData.classEndTime}
                       onChange={handleInputChange}
                       required
-                      className="w-full px-4 py-2 bg-white border border-green-300 rounded-lg text-gray-800"
+                      className="w-full px-4 py-2 bg-white border border-green-300 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
                     />
                   </div>
+
                 </div>
               </div>
 
@@ -341,7 +304,7 @@ export default function BeedleAttendancePage() {
                       value={formData.teacherPresent}
                       onChange={handleInputChange}
                       required
-                      className="w-full px-4 py-2 bg-white border border-purple-300 rounded-lg text-gray-800"
+                      className="w-full px-4 py-2 bg-white border border-purple-300 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                     >
                       <option value="">Select</option>
                       <option value="yes">Yes</option>
@@ -360,7 +323,7 @@ export default function BeedleAttendancePage() {
                         value={formData.teacherArrivalTime}
                         required
                         onChange={handleInputChange}
-                        className="w-full px-4 py-2 bg-white border border-purple-300 rounded-lg text-gray-800"
+                        className="w-full px-4 py-2 bg-white border border-purple-300 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                       />
                     </div>
                   )}
@@ -374,7 +337,7 @@ export default function BeedleAttendancePage() {
                       value={formData.homeworkGiven}
                       onChange={handleInputChange}
                       required
-                      className="w-full px-4 py-2 bg-white border border-purple-300 rounded-lg text-gray-800"
+                      className="w-full px-4 py-2 bg-white border border-purple-300 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                     >
                       <option value="">Select</option>
                       <option value="yes">Yes</option>
@@ -400,7 +363,7 @@ export default function BeedleAttendancePage() {
                     required
                     min="0"
                     max="50"
-                    className="w-full md:w-48 px-4 py-2 bg-white border border-orange-300 rounded-lg text-gray-800"
+                    className="w-full md:w-48 px-4 py-2 bg-white border border-orange-300 rounded-lg text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                     placeholder="Enter number"
                   />
                 </div>
@@ -417,14 +380,14 @@ export default function BeedleAttendancePage() {
                           type="text"
                           value={student}
                           onChange={(e) => handleArrayChange("absentStudents", index, e.target.value)}
-                          className="flex-1 px-3 py-2 bg-white border border-orange-300 rounded-lg text-gray-800"
+                          className="flex-1 px-3 py-2 bg-white border border-orange-300 rounded-lg text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                           placeholder="Student name"
                         />
                         {formData.absentStudents.length > 1 && (
                           <button
                             type="button"
                             onClick={() => removeArrayItem("absentStudents", index)}
-                            className="px-3 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg"
+                            className="px-3 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors duration-200"
                           >
                             ✕
                           </button>
@@ -434,7 +397,7 @@ export default function BeedleAttendancePage() {
                     <button
                       type="button"
                       onClick={() => addArrayItem("absentStudents")}
-                      className="mt-2 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg"
+                      className="mt-2 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg transition-colors duration-200"
                     >
                       + Add Student
                     </button>
@@ -451,14 +414,14 @@ export default function BeedleAttendancePage() {
                           type="text"
                           value={student}
                           onChange={(e) => handleArrayChange("lateStudents", index, e.target.value)}
-                          className="flex-1 px-3 py-2 bg-white border border-orange-300 rounded-lg text-gray-800"
+                          className="flex-1 px-3 py-2 bg-white border border-orange-300 rounded-lg text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                           placeholder="Student name"
                         />
                         {formData.lateStudents.length > 1 && (
                           <button
                             type="button"
                             onClick={() => removeArrayItem("lateStudents", index)}
-                            className="px-3 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg"
+                            className="px-3 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors duration-200"
                           >
                             ✕
                           </button>
@@ -468,4 +431,36 @@ export default function BeedleAttendancePage() {
                     <button
                       type="button"
                       onClick={() => addArrayItem("lateStudents")}
-                      className
+                      className="mt-2 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg transition-colors duration-200"
+                    >
+                      + Add Student
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Form Actions */}
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                >
+                  Submit Attendance
+                </button>
+                <button
+                  type="button"
+                  onClick={handleReset}
+                  className="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white font-semibold rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
+                >
+                  Clear Form
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </form>
+
+      <Footer />
+    </main>
+  );
+}
