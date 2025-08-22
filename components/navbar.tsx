@@ -3,11 +3,11 @@
 import Image from "next/image";
 import Logo from "../res/images/logo.png";
 import { useEffect, useState } from "react";
-import { supabase } from "@/lib/database";
 import { redirect } from "next/navigation";
 import { CombineNavLinks, CreateNavLink, NavLink, RenderNavLinks } from "./navlinks";
-import { fetchCurrentUser } from "@/lib/utils";
-import { useRouter } from "next/router";
+import { fetchCurrentUser } from "@/lib/serverUtils";
+import { retrieveSessionToken, deleteSessionToken } from "@/lib/utils";
+import { signOut } from "@/lib/serverUtils";
 
 const Navlinks: NavLink[] = CombineNavLinks(
     CreateNavLink("Home", "/"),
@@ -27,24 +27,16 @@ export default function Navbar() {
     const [user, setUser] = useState<any | null>(null);
 
     useEffect(() => {
-        fetchCurrentUser((cuser) => {
+        (async () => {
+            const cuser = await fetchCurrentUser(retrieveSessionToken(), window.location.pathname != "/auth/signup" && window.location.pathname != "/auth/login" && window.location.pathname != "/");
+
             setUser(cuser ?? null);
-        }, true, window.location.pathname != "/auth/signup" && window.location.pathname != "/auth/login");
-
-        const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
-            setUser(session?.user ?? null);
-            if (_event == "SIGNED_OUT") {
-                redirect("/auth/login");
-            }
-        });
-
-        return () => {
-            listener.subscription.unsubscribe();
-        };
+        })();
     }, []);
 
     const handleLogout = async () => {
-        await supabase.auth.signOut();
+        await signOut();
+        deleteSessionToken();
         setUser(null);
         redirect("/auth/login");
     };

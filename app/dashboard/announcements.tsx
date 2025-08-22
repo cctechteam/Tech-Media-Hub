@@ -1,6 +1,6 @@
 "use client";
 
-import { createAnnouncement } from "@/lib/utils";
+import { createAnnouncement } from "@/lib/serverUtils";
 import { useState } from "react";
 
 interface AnnouncementPopupProps {

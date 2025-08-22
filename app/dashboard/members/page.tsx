@@ -1,8 +1,8 @@
 "use client";
 import { MainPage } from "@/components/main";
 import UserLoading from "@/components/userloading";
-import { fetchCurrentUser, fetchUsers, IsAdmin, Role, ValueToRole } from "@/lib/utils";
-import { deleteUser } from "@/lib/serverUtils";
+import { IsAdmin, retrieveSessionToken, Role, ValueToRole } from "@/lib/utils";
+import { deleteUser, fetchCurrentUser, fetchUsers } from "@/lib/serverUtils";
 import { useEffect, useState } from "react";
 import { MoreVertical, Edit2, Trash2, UserCheck, UserX } from "lucide-react";
 
@@ -200,11 +200,16 @@ export default function MembersPage() {
     const doReloadMembers = () => setReloadMembers(prev => !prev);
 
     useEffect(() => {
-        fetchCurrentUser(setUser);
+        (async () => {
+            const cuser = await fetchCurrentUser(retrieveSessionToken());
+            setUser(cuser ?? null)
+        })();
     }, []);
 
     useEffect(() => {
-        fetchUsers(setMembers);
+        (async () => {
+            setMembers(await fetchUsers());
+        })();
     }, [reloadMembers]);
 
     if (!user)
