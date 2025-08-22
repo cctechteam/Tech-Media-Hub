@@ -1,7 +1,8 @@
 "use client";
 import Footer from "@/components/footer";
 import Navbar from "@/components/navbar";
-import { fetchCurrentUser } from "@/lib/utils";
+import { retrieveSessionToken } from "@/lib/utils";
+import { fetchCurrentUser } from "@/lib/serverUtils";
 
 import { useEffect, useState } from "react";
 
@@ -41,12 +42,14 @@ export default function BeedleAttendancePage() {
   });
 
   useEffect(() => {
-    fetchCurrentUser((user: any) => {
+    (async () => {
+      const cuser = await fetchCurrentUser(retrieveSessionToken());
+      const user = cuser ?? { email: "" };
       setFormData(prev => ({
         ...prev,
         "beedleEmail": user?.email ?? ""
       }));
-    });
+    })();
   }, [])
 
   const gradeLevels = [

@@ -2,7 +2,8 @@
 
 import Footer from "@/components/footer";
 import Navbar from "@/components/navbar";
-import { deleteAnnouncement, fetchAnnouncements, fetchCurrentUser, formatDate, IsAdmin, Role, ValueToRole } from "@/lib/utils";
+import { formatDate, IsAdmin, retrieveSessionToken, Role, ValueToRole } from "@/lib/utils";
+import { fetchAnnouncements, fetchCurrentUser, deleteAnnouncement } from "@/lib/serverUtils";
 import { useState, useEffect, useRef } from "react";
 import CreateAnnouncementPopup from "./announcements";
 import { FaTrash } from "react-icons/fa";
@@ -58,7 +59,10 @@ export default function DashboardPage() {
     const doReloadAnnouncements = () => setReloadAnnouncements(prev => !prev);
 
     useEffect(() => {
-        fetchCurrentUser(setUser);
+        (async () => {
+            const cuser = await fetchCurrentUser(retrieveSessionToken());
+            setUser(cuser ?? null)
+        })();
 
         // Load saved prefs
         const savedPrefsRaw = localStorage.getItem(LOCAL_STORAGE_KEY);
@@ -110,8 +114,8 @@ export default function DashboardPage() {
     }, [settingsOpen]);
 
     useEffect(() => {
-        window.setTimeout(() => {
-            fetchAnnouncements(setAnnouncements);
+        window.setTimeout(async () => {
+            setAnnouncements(await fetchAnnouncements());
         }, 2000);
     }, [creatingAnnouncement, reloadAnnouncements])
 

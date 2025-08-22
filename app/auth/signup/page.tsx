@@ -1,12 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { supabase } from "@/lib/database";
 import { useRouter } from "next/navigation";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 import Image from "next/image";
 import CampionBanner from "../../../res/images/CampionBanner.png";
+import { signUp } from "@/lib/serverUtils";
 
 export default function SignupPage() {
     const router = useRouter();
@@ -25,7 +25,7 @@ export default function SignupPage() {
         }
 
         setLoading(true);
-        const { error } = await supabase.auth.signUp({ email, password });
+        const { error } = await signUp({ email, password });
         setLoading(false);
 
         if (error) {

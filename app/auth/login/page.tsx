@@ -1,12 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { supabase } from "@/lib/database";
 import { useRouter } from "next/navigation";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 import Image from "next/image";
 import CampionBanner from "../../../res/images/CampionBanner.png";
+import { saveSessionToken } from "@/lib/utils";
+import { signInWithPassword } from "@/lib/serverUtils";
 
 export default function LoginPage() {
     const router = useRouter();
@@ -25,12 +26,13 @@ export default function LoginPage() {
         }
 
         setLoading(true);
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        const { error, token } = await signInWithPassword({ email, password });
         setLoading(false);
 
         if (error) {
             setErrorMsg(error.message);
         } else {
+            saveSessionToken(token ?? "");
             router.push("/dashboard");
         }
     };
