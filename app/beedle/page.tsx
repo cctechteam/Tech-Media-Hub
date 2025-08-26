@@ -3,6 +3,7 @@ import Footer from "@/components/footer";
 import Navbar from "@/components/navbar";
 import { retrieveSessionToken } from "@/lib/utils";
 import { fetchCurrentUser } from "@/lib/serverUtils";
+import CampionBanner from "../../../res/images/CampionBanner.png";
 
 import { useEffect, useState } from "react";
 
@@ -62,8 +63,13 @@ export default function BeedleAttendancePage() {
   ];
 
   const subjects = [
-    "Mathematics", "English", "Science", "Social Studies", "Art", "Music",
-    "Physical Education", "Computer Studies", "Spanish", "French"
+"Accounts", "Additional Mathematics", "Art", "Biology", "Caribbean Studies",
+"Chemistry", "Christian Living", "Communication Studies", "Computer Science", "Digital Media",
+"Drama", "Economics", "Electrical & Electronic Technology", "English Language", "English Literature",
+"French", "Geography", "History", "Information Technology", "Integrated Science",
+"Law", "Management of Business", "Mathematics", "Music", "Personal Development",
+"Physical Education", "Physics", "Principles of Accounts", "Principles of Business", "Sociology",
+"Spanish", "Technical Drawing"
   ];
 
   const handleInputChange = (e: any) => {
@@ -135,6 +141,11 @@ export default function BeedleAttendancePage() {
       className="min-h-screen text-gray-800 bg-gradient-to-br from-red-50 via-white to-indigo-50 relative z-10 max-w-full mx-auto"
       aria-label="Beedle Attendance main content"
     >
+    <Image
+                            src={CampionBanner}
+                            alt="Campion Banner"
+                            className="w-[70%] aspect-auto"
+          />
       <h1 className="sr-only">Beedle Student Attendance</h1>
       <Navbar />
 
