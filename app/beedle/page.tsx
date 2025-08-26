@@ -141,11 +141,6 @@ export default function BeedleAttendancePage() {
       className="min-h-screen text-gray-800 bg-gradient-to-br from-red-50 via-white to-indigo-50 relative z-10 max-w-full mx-auto"
       aria-label="Beedle Attendance main content"
     >
-      {/* ✅ Campion Banner at the top */}
-      <div className="flex justify-center py-6">
-
-      </div>
-
       <h1 className="sr-only">Beedle Student Attendance</h1>
       <Navbar />
       <form className="w-full min-h-screen px-4 py-8" onSubmit={(e) => {
