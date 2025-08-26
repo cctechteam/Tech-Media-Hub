@@ -3,7 +3,7 @@ import Footer from "@/components/footer";
 import Navbar from "@/components/navbar";
 import { retrieveSessionToken } from "@/lib/utils";
 import { fetchCurrentUser } from "@/lib/serverUtils";
-import Image from "next/image"l
+import Image from "next/image";
 import CampionBanner from "../../../res/images/Campion.png";
 
 import { useEffect, useState } from "react";
