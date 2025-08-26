@@ -4,7 +4,6 @@ import Navbar from "@/components/navbar";
 import { retrieveSessionToken } from "@/lib/utils";
 import { fetchCurrentUser } from "@/lib/serverUtils";
 import Image from "next/image";
-import CampionBanner from "../../../res/images/CampionBanner.png";
 
 import { useEffect, useState } from "react";
 
