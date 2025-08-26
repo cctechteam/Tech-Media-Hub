@@ -143,12 +143,12 @@ export default function BeedleAttendancePage() {
     >
       {/* ✅ Campion Banner at the top */}
       <div className="flex justify-center py-6">
-        <Image
-          src={CampionBanner}
-          alt="Campion Banner"
-          className="w-[300px] h-auto"
-          priority
-        />
+    <Image
+      src="../../../res/images/Campion_Logo.png"
+      alt="Campion Banner"
+      className="w-[300px] h-auto"
+      priority
+    />
       </div>
 
       <h1 className="sr-only">Beedle Student Attendance</h1>
