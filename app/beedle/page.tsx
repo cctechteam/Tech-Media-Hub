@@ -3,7 +3,8 @@ import Footer from "@/components/footer";
 import Navbar from "@/components/navbar";
 import { retrieveSessionToken } from "@/lib/utils";
 import { fetchCurrentUser } from "@/lib/serverUtils";
-import CampionBanner from "../../../res/images/CampionBanner.png";
+import Image from "next/image"l
+import CampionBanner from "../../../res/images/Campion.png";
 
 import { useEffect, useState } from "react";
 
@@ -141,14 +142,18 @@ export default function BeedleAttendancePage() {
       className="min-h-screen text-gray-800 bg-gradient-to-br from-red-50 via-white to-indigo-50 relative z-10 max-w-full mx-auto"
       aria-label="Beedle Attendance main content"
     >
-    <Image
-                            src={CampionBanner}
-                            alt="Campion Banner"
-                            className="w-[70%] aspect-auto"
-          />
+      {/* ✅ Campion Banner at the top */}
+      <div className="flex justify-center py-6">
+        <Image
+          src={CampionBanner}
+          alt="Campion Banner"
+          className="w-[300px] h-auto"
+          priority
+        />
+      </div>
+
       <h1 className="sr-only">Beedle Student Attendance</h1>
       <Navbar />
-
       <form className="w-full min-h-screen px-4 py-8" onSubmit={(e) => {
         e.preventDefault();
         handleSubmit();
