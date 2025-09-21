@@ -3,7 +3,7 @@ import { FaPhone, FaEnvelope, FaTwitter, FaInstagram, FaYoutube, FaAddressBook, 
 
 export default function Footer() {
     return (
-        <footer className="bg-gray-900 text-gray-300 py-10 mt-auto">
+        <footer className="bg-gray-900 text-gray-300 py-10 mt-auto relative">
             <div className="max-w-7xl mx-auto px-4">
 
                 {/* 3-column layout */}

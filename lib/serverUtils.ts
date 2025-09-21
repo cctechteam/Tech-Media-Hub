@@ -91,12 +91,12 @@ export async function getSession(token: string): Promise<{ user?: any; error?: {
     try {
         const db = await getDatabase();
 
-        const session = db.prepare(
-            `SELECT s.token, s.createdAt, m.id as userId, m.email, m.role, m.full_name
+        const session = db.prepare(`
+            SELECT s.token, s.createdAt, m.id as userId, m.email, m.role, m.full_name
              FROM sessions s
              JOIN members m ON s.userId = m.id
-             WHERE s.token = ?`
-        ).get(token);
+             WHERE s.token = ?
+        `).get(token);
 
         if (!session) {
             return { error: { message: "Invalid or expired session" } };
@@ -188,5 +188,79 @@ export async function deleteAnnouncement(id: number) {
         db.prepare("DELETE FROM announcements WHERE id = ?").run(id);
     } catch (err: any) {
         console.error("Error deleting announcement:", err.message);
+    }
+}
+
+// BEEDLE SLIPS
+export async function saveBeedleSlip(formData: {
+    beedleEmail: string;
+    gradeLevel: string;
+    className: string;
+    classStartTime: string;
+    classEndTime: string;
+    date: string;
+    teacher: string;
+    subject: string;
+    teacherPresent: string;
+    teacherArrivalTime: string;
+    substituteReceived: string;
+    homeworkGiven: string;
+    studentsPresent: string;
+    absentStudents: string[];
+    lateStudents: string[];
+}) {
+    try {
+        const db = await getDatabase();
+        
+        const stmt = db.prepare(`
+            INSERT INTO beedle_slips (
+                beedle_email, grade_level, class_name, class_start_time, class_end_time,
+                date, teacher, subject, teacher_present, teacher_arrival_time,
+                substitute_received, homework_given, students_present, absent_students, late_students
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `);
+        
+        const result = stmt.run(
+            formData.beedleEmail,
+            formData.gradeLevel,
+            formData.className,
+            formData.classStartTime,
+            formData.classEndTime,
+            formData.date,
+            formData.teacher,
+            formData.subject,
+            formData.teacherPresent,
+            formData.teacherArrivalTime || null,
+            formData.substituteReceived || null,
+            formData.homeworkGiven,
+            parseInt(formData.studentsPresent),
+            JSON.stringify(formData.absentStudents.filter(s => s.trim() !== '')),
+            JSON.stringify(formData.lateStudents.filter(s => s.trim() !== ''))
+        );
+        
+        return { success: true, id: result.lastInsertRowid };
+    } catch (err: any) {
+        console.error("Error saving beedle slip:", err.message);
+        return { success: false, error: err.message };
+    }
+}
+
+export async function getBeedleSlips() {
+    try {
+        const db = await getDatabase();
+        
+        const slips = db.prepare(`
+            SELECT * FROM beedle_slips 
+            ORDER BY created_at DESC
+        `).all();
+        
+        return slips.map((slip: any) => ({
+            ...slip,
+            absent_students: JSON.parse(slip.absent_students || '[]'),
+            late_students: JSON.parse(slip.late_students || '[]')
+        }));
+    } catch (err: any) {
+        console.error("Error fetching beedle slips:", err.message);
+        return [];
     }
 }
