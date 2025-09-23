@@ -2,7 +2,7 @@
 import Footer from "@/components/footer";
 import Navbar from "@/components/navbar";
 import { retrieveSessionToken } from "@/lib/utils";
-import { fetchCurrentUser } from "@/lib/serverUtils";
+import { fetchCurrentUser, saveBeedleSlip } from "@/lib/serverUtils";
 import Image from "next/image";
 
 import { useEffect, useState } from "react";
@@ -18,6 +18,7 @@ type AttendanceFormData = {
   subject: string;
   teacherPresent: string;
   teacherArrivalTime: string;
+  substituteReceived: string;
   homeworkGiven: string;
   studentsPresent: string;
   absentStudents: string[];
@@ -36,6 +37,7 @@ export default function BeedleAttendancePage() {
     subject: "",
     teacherPresent: "",
     teacherArrivalTime: "",
+    substituteReceived: "",
     homeworkGiven: "",
     studentsPresent: "",
     absentStudents: [""],
@@ -107,14 +109,24 @@ export default function BeedleAttendancePage() {
     }
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (formData.classEndTime <= formData.classStartTime) {
       alert("End time must be later than start time.");
       return;
     }
 
-    console.log("Student attendance submitted:", formData);
-    alert("Attendance form submitted successfully!");
+    try {
+      const result = await saveBeedleSlip(formData);
+      if (result.success) {
+        alert("Attendance form submitted successfully!");
+        handleReset(); // Clear the form after successful submission
+      } else {
+        alert("Error submitting form: " + result.error);
+      }
+    } catch (error) {
+      console.error("Error submitting form:", error);
+      alert("Error submitting form. Please try again.");
+    }
   };
 
   const handleReset = () => {
@@ -129,6 +141,7 @@ export default function BeedleAttendancePage() {
       subject: "",
       teacherPresent: "",
       teacherArrivalTime: "",
+      substituteReceived: "",
       homeworkGiven: "",
       studentsPresent: "",
       absentStudents: [""],
@@ -170,6 +183,7 @@ export default function BeedleAttendancePage() {
                       value={formData.beedleEmail}
                       required
                       readOnly
+                      title="This is automatically filled with your logged-in email address"
                       className="w-full px-4 py-2 bg-white border border-blue-300 rounded-lg text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       placeholder="Loading..."
                     />
@@ -184,6 +198,7 @@ export default function BeedleAttendancePage() {
                       value={formData.gradeLevel}
                       onChange={handleInputChange}
                       required
+                      title="Select the grade level of the class you're monitoring"
                       className="w-full px-4 py-2 bg-white border border-blue-300 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     >
                       <option value="">Select Grade Level</option>
@@ -204,6 +219,7 @@ export default function BeedleAttendancePage() {
                       placeholder="4C / Homeroom"
                       onChange={handleInputChange}
                       required
+                      title="Enter the specific class name or section (e.g., 4C, Homeroom, etc.)"
                       className="w-full px-4 py-2 bg-white border border-blue-300 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                   </div>
@@ -218,6 +234,7 @@ export default function BeedleAttendancePage() {
                       value={formData.date}
                       onChange={handleInputChange}
                       required
+                      title="Select the date when this class session took place"
                       className="w-full px-4 py-2 bg-white border border-blue-300 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                   </div>
@@ -239,6 +256,7 @@ export default function BeedleAttendancePage() {
                       value={formData.teacher}
                       onChange={handleInputChange}
                       required
+                      title="Select from the dropdown or type the teacher's name who was supposed to teach this class"
                       className="w-full px-4 py-2 bg-white border border-green-300 rounded-lg text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
                       placeholder="Select or type teacher name"
                     />
@@ -258,6 +276,7 @@ export default function BeedleAttendancePage() {
                       value={formData.subject}
                       onChange={handleInputChange}
                       required
+                      title="Select the subject that was being taught in this class session"
                       className="w-full px-4 py-2 bg-white border border-green-300 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
                     >
                       <option value="">Select Subject</option>
@@ -277,6 +296,7 @@ export default function BeedleAttendancePage() {
                       value={formData.classStartTime}
                       onChange={handleInputChange}
                       required
+                      title="Enter the scheduled start time for this class period"
                       className="w-full px-4 py-2 bg-white border border-green-300 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
                     />
                   </div>
@@ -291,6 +311,7 @@ export default function BeedleAttendancePage() {
                       value={formData.classEndTime}
                       onChange={handleInputChange}
                       required
+                      title="Enter the scheduled end time for this class period"
                       className="w-full px-4 py-2 bg-white border border-green-300 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
                     />
                   </div>
@@ -312,6 +333,7 @@ export default function BeedleAttendancePage() {
                       value={formData.teacherPresent}
                       onChange={handleInputChange}
                       required
+                      title="Indicate whether the assigned teacher showed up for this class"
                       className="w-full px-4 py-2 bg-white border border-purple-300 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                     >
                       <option value="">Select</option>
@@ -331,8 +353,29 @@ export default function BeedleAttendancePage() {
                         value={formData.teacherArrivalTime}
                         required
                         onChange={handleInputChange}
+                        title="Record the exact time the teacher arrived at the classroom"
                         className="w-full px-4 py-2 bg-white border border-purple-300 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                       />
+                    </div>
+                  )}
+                  {formData.teacherPresent === "no" && (
+                    <div>
+                      <label htmlFor="substituteReceived" className="block text-sm font-medium text-purple-700 mb-2">
+                        Substitute Teacher Received? *
+                      </label>
+                      <select
+                        id="substituteReceived"
+                        name="substituteReceived"
+                        value={formData.substituteReceived}
+                        onChange={handleInputChange}
+                        required
+                        title="Indicate whether a substitute teacher was provided for this class"
+                        className="w-full px-4 py-2 bg-white border border-purple-300 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      >
+                        <option value="">Select</option>
+                        <option value="yes">Yes</option>
+                        <option value="no">No</option>
+                      </select>
                     </div>
                   )}
                   <div>
@@ -345,6 +388,7 @@ export default function BeedleAttendancePage() {
                       value={formData.homeworkGiven}
                       onChange={handleInputChange}
                       required
+                      title="Indicate whether the teacher assigned homework during this class"
                       className="w-full px-4 py-2 bg-white border border-purple-300 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                     >
                       <option value="">Select</option>
@@ -371,6 +415,7 @@ export default function BeedleAttendancePage() {
                     required
                     min="0"
                     max="50"
+                    title="Count and enter the total number of students who attended this class"
                     className="w-full md:w-48 px-4 py-2 bg-white border border-orange-300 rounded-lg text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                     placeholder="Enter number"
                   />
@@ -388,6 +433,7 @@ export default function BeedleAttendancePage() {
                           type="text"
                           value={student}
                           onChange={(e) => handleArrayChange("absentStudents", index, e.target.value)}
+                          title="Enter the full name of a student who was absent from this class"
                           className="flex-1 px-3 py-2 bg-white border border-orange-300 rounded-lg text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                           placeholder="Student name"
                         />
@@ -422,6 +468,7 @@ export default function BeedleAttendancePage() {
                           type="text"
                           value={student}
                           onChange={(e) => handleArrayChange("lateStudents", index, e.target.value)}
+                          title="Enter the full name of a student who arrived late to this class"
                           className="flex-1 px-3 py-2 bg-white border border-orange-300 rounded-lg text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                           placeholder="Student name"
                         />
@@ -462,6 +509,12 @@ export default function BeedleAttendancePage() {
                 >
                   Clear Form
                 </button>
+                <a
+                  href="/beedle/view"
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 text-center"
+                >
+                  View Submitted Slips
+                </a>
               </div>
             </div>
           </div>

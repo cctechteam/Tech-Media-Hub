@@ -11,16 +11,15 @@ import { signOut } from "@/lib/serverUtils";
 
 const Navlinks: NavLink[] = CombineNavLinks(
     CreateNavLink("Home", "/"),
-    CreateNavLink("Fact Book", "https://www.campioncollege.com/?p=factBook"),
     CreateNavLink("About", "/#about"),
-    CreateNavLink("Academics", undefined, [
-        CreateNavLink("Faculty", "https://www.campioncollege.com/?p=faculty")
-    ]),
     CreateNavLink("Student", undefined, [
         CreateNavLink("Resources", "/resources"),
-        CreateNavLink("Beedle Report", "/beedle")
+        CreateNavLink("Beedle Report", "/beedle"),
+        CreateNavLink("Beedle Dashboard", "/beedle/view")
     ]),
-    CreateNavLink("Contact", "#contact")
+    CreateNavLink("Admin", undefined, [
+        CreateNavLink("Email Reports", "/admin/email-reports")
+    ]),
 );
 
 export default function Navbar() {
@@ -42,7 +41,7 @@ export default function Navbar() {
     };
 
     return (
-        <header className="bg-white border-b border-gray-300 sticky z-50 top-0">
+        <header className="bg-white border-b border-gray-300 sticky top-0 z-50">
             <div className="container mx-auto flex justify-between items-center py-4 px-6">
                 <div className="flex items-center space-x-3">
                     <Image

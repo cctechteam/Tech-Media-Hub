@@ -35,6 +35,28 @@ db.prepare(`
   )
 `).run();
 
+db.prepare(`
+  CREATE TABLE IF NOT EXISTS beedle_slips (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    beedle_email TEXT NOT NULL,
+    grade_level TEXT NOT NULL,
+    class_name TEXT NOT NULL,
+    class_start_time TEXT NOT NULL,
+    class_end_time TEXT NOT NULL,
+    date TEXT NOT NULL,
+    teacher TEXT NOT NULL,
+    subject TEXT NOT NULL,
+    teacher_present TEXT NOT NULL,
+    teacher_arrival_time TEXT,
+    substitute_received TEXT,
+    homework_given TEXT NOT NULL,
+    students_present INTEGER NOT NULL,
+    absent_students TEXT,
+    late_students TEXT,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP
+  )
+`).run();
+
 export async function getDatabase() {
     return db;
 };
