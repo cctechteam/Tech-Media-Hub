@@ -1,3 +1,28 @@
+/**
+ * Signup Page Component
+ * 
+ * Provides user registration interface for the Tech Media Hub system.
+ * Handles new user account creation with email/password registration,
+ * validates Campion College email domains, and manages the signup process.
+ * 
+ * Features:
+ * - Email domain validation (@campioncollege.com only)
+ * - Password-based account creation
+ * - Server-side user registration handling
+ * - Loading states and error handling
+ * - Responsive design with Campion College branding
+ * - Navigation to dashboard on successful registration
+ * 
+ * Security:
+ * - Restricts registration to Campion College email addresses only
+ * - Secure password transmission to server for hashing
+ * - Duplicate email validation handled server-side
+ * 
+ * @author Tech Media Hub Team
+ * @version 1.0
+ * @since 2024
+ */
+
 "use client";
 
 import { useState } from "react";
@@ -8,12 +33,20 @@ import Image from "next/image";
 import CampionBanner from "../../../res/images/CampionBanner.png";
 import { signUp } from "@/lib/serverUtils";
 
+/**
+ * SignupPage Component
+ * 
+ * Main signup page component that handles user registration
+ * and redirects to dashboard on successful account creation.
+ */
 export default function SignupPage() {
-    const router = useRouter();
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
-    const [errorMsg, setErrorMsg] = useState("");
-    const [loading, setLoading] = useState(false);
+    const router = useRouter(); // Next.js router for navigation
+    
+    // Form state management
+    const [email, setEmail] = useState("");         // User's email input
+    const [password, setPassword] = useState("");   // User's password input
+    const [errorMsg, setErrorMsg] = useState("");   // Error message display
+    const [loading, setLoading] = useState(false);  // Loading state during registration
 
     const handleSignup = async (e: React.FormEvent) => {
         e.preventDefault();
