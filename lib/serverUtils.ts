@@ -282,8 +282,8 @@ export async function deleteAnnouncement(id: number) {
     }
 }
 
-// BEEDLE SLIPS
-export async function saveBeedleSlip(formData: {
+// BEADLE SLIPS
+export async function saveBeadleSlip(formData: {
     beedleEmail: string;
     form: string;
     formClass: string;
@@ -336,7 +336,7 @@ export async function saveBeedleSlip(formData: {
     }
 }
 
-export async function getBeedleSlips() {
+export async function getBeadleSlips() {
     try {
         const db = await getDatabase();
         
@@ -366,7 +366,7 @@ export async function getBeedleSlips() {
  * @param slipId - The ID of the beadle slip to delete
  * @returns Object with success status and optional error message
  */
-export async function deleteBeedleSlip(slipId: number) {
+export async function deleteBeadleSlip(slipId: number) {
     try {
         const db = await getDatabase();
         

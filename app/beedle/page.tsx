@@ -28,8 +28,8 @@ import { ConfirmationModal } from "@/components/ConfirmationModal";
 import { useToast } from "@/hooks/useToast";
 import { useConfirmation } from "@/hooks/useConfirmation";
 import { retrieveSessionToken } from "@/lib/utils";
-import { fetchCurrentUser, saveBeedleSlip } from "@/lib/serverUtils";
-import { generateBeedleConfirmationEmail } from '@/lib/emailUtils';
+import { fetchCurrentUser, saveBeadleSlip } from "@/lib/serverUtils";
+import { generateBeadleConfirmationEmail } from '@/lib/emailUtils';
 import Image from "next/image";
 
 import { useEffect, useState } from "react";
@@ -237,7 +237,7 @@ export default function BeedleAttendancePage() {
     }
 
     try {
-      const result = await saveBeedleSlip(formData);
+      const result = await saveBeadleSlip(formData);
       if (result.success) {
         // Store the submitted data and show confirmation
         setSubmittedData({
@@ -324,9 +324,9 @@ export default function BeedleAttendancePage() {
   return (
     <main
       className="min-h-screen text-gray-800 bg-gradient-to-br from-red-100 via-red-50 to-white relative z-10 max-w-full mx-auto"
-      aria-label="Beedle Attendance main content"
+      aria-label="Beadle Attendance main content"
     >
-      <h1 className="sr-only">Beedle Student Attendance</h1>
+      <h1 className="sr-only">Beadle Student Attendance</h1>
       <Navbar />
       <form className="w-full min-h-screen px-4 py-8" onSubmit={(e) => {
         e.preventDefault();
@@ -336,7 +336,7 @@ export default function BeedleAttendancePage() {
           <div className="bg-white bg-opacity-95 backdrop-blur-sm rounded-lg shadow-lg border border-red-200 p-8">
             <div className="text-center mb-8">
               {/* Campion College Logo */}
-              <div className="flex justify-center mb-6">
+              <div className="flex justify-center mb-2">
                 <Image
                   src="/images/Campion_Logo.png"
                   alt="Campion College Logo"
@@ -347,17 +347,16 @@ export default function BeedleAttendancePage() {
                 />
               </div>
               <h2 className="text-3xl font-bold mb-2" style={{color: '#B91C47'}}>Student Attendance Form</h2>
-              <p style={{color: '#B91C47'}}>Class Beedle Session(s) Report</p>
+              <p style={{color: '#B91C47'}}>Class Beadle Session(s) Report</p>
               <div className="mt-2 text-sm text-gray-600">
-                <p className="font-medium">Campion College</p>
-                <p>Electronic Beadle Slip</p>
+                <p className="font-medium">Electronic Beadle Slip</p>
               </div>
             </div>
 
             <div className="space-y-6">
-              {/* Beedle Information Section */}
+              {/* Beadle Information Section */}
               <div className="bg-red-50 p-6 rounded-lg border border-red-200">
-                <h3 className="text-xl font-semibold mb-4" style={{color: '#B91C47'}}>Beedle Information</h3>
+                <h3 className="text-xl font-semibold mb-4" style={{color: '#B91C47'}}>Beadle Information</h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
                     <label htmlFor="beedleEmail" className="block text-sm font-medium mb-2" style={{color: '#B91C47'}}>
@@ -776,7 +775,7 @@ export default function BeedleAttendancePage() {
         />
       )}
 
-      {/* Beedle Confirmation Modal */}
+      {/* Beadle Confirmation Modal */}
       {showConfirmation && submittedData && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-hidden shadow-2xl">
@@ -796,7 +795,7 @@ export default function BeedleAttendancePage() {
               <div 
                 id="confirmation-content"
                 dangerouslySetInnerHTML={{ 
-                  __html: generateBeedleConfirmationEmail(submittedData) 
+                  __html: generateBeadleConfirmationEmail(submittedData) 
                 }}
               />
             </div>
@@ -806,7 +805,7 @@ export default function BeedleAttendancePage() {
                 onClick={() => {
                   const printWindow = window.open('', '_blank');
                   if (printWindow) {
-                    printWindow.document.write(generateBeedleConfirmationEmail(submittedData));
+                    printWindow.document.write(generateBeadleConfirmationEmail(submittedData));
                     printWindow.document.close();
                     printWindow.print();
                   }

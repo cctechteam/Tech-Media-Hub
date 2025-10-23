@@ -1,14 +1,14 @@
 "use client";
 import Footer from "@/components/footer";
 import Navbar from "@/components/navbar";
-import { getBeedleSlips } from "@/lib/serverUtils";
+import { getBeadleSlips } from "@/lib/serverUtils";
 import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import { ToastContainer } from '@/components/Toast';
 import { useToast } from '@/hooks/useToast';
 import Image from 'next/image';
 
-type BeedleSlip = {
+type BeadleSlip = {
   id: number;
   beedle_email: string;
   grade_level: string;
@@ -34,14 +34,14 @@ type SortDirection = 'asc' | 'desc';
 
 function BeedleDashboardContent() {
   const { toasts, success, error, removeToast } = useToast();
-  const [slips, setSlips] = useState<BeedleSlip[]>([]);
+  const [slips, setSlips] = useState<BeadleSlip[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterGrade, setFilterGrade] = useState("");
   const [filterDate, setFilterDate] = useState("");
   const [filterTeacher, setFilterTeacher] = useState("");
   const [filterSubject, setFilterSubject] = useState("");
-  const [selectedSlip, setSelectedSlip] = useState<BeedleSlip | null>(null);
+  const [selectedSlip, setSelectedSlip] = useState<BeadleSlip | null>(null);
   const [mounted, setMounted] = useState(false);
   const [viewedReports, setViewedReports] = useState<Set<number>>(new Set());
   const [sortField, setSortField] = useState<SortField>('date');
@@ -55,7 +55,7 @@ function BeedleDashboardContent() {
 
   const loadSlips = async () => {
     try {
-      const data = await getBeedleSlips();
+      const data = await getBeadleSlips();
       setSlips(data);
     } catch (error) {
       console.error("Error loading beadle slips:", error);
@@ -87,7 +87,7 @@ function BeedleDashboardContent() {
     }
     groups[form].push(slip);
     return groups;
-  }, {} as Record<string, BeedleSlip[]>);
+  }, {} as Record<string, BeadleSlip[]>);
 
   // Calculate supervisor-focused statistics
   const supervisorStats = {
@@ -137,7 +137,7 @@ function BeedleDashboardContent() {
         <div className="bg-white bg-opacity-95 backdrop-blur-sm rounded-lg shadow-lg border border-blue-100 p-8">
           <div className="text-center mb-8">
             {/* Campion College Logo */}
-            <div className="flex justify-center mb-6">
+            <div className="flex justify-center mb-2">
               <Image
                 src="/images/Campion_Logo.png"
                 alt="Campion College Logo"
@@ -147,12 +147,8 @@ function BeedleDashboardContent() {
                 priority
               />
             </div>
-            <h1 className="text-3xl font-bold mb-2" style={{color: '#B91C47'}}>Form Supervisor Dashboard</h1>
+            <h1 className="text-3xl font-bold mb-2" style={{color: '#B91C47'}}>Beadle Slip Dashboard</h1>
             <p style={{color: '#B91C47'}}>Monitor and manage beadle attendance reports across all forms</p>
-            <div className="mt-2 text-sm text-gray-600">
-              <p className="font-medium">Campion College</p>
-              <p>Technology & Media Production Department</p>
-            </div>
           </div>
 
           {/* Supervisor Controls */}
@@ -362,7 +358,7 @@ function BeedleDashboardContent() {
                   </div>
                   <div>
                     <h2 className="text-2xl font-bold">Beadle Slip Details</h2>
-                    <p className="text-red-100">{selectedSlip.class_name} - {selectedSlip.subject}</p>
+                    <p className="text-red-100">{selectedSlip.subject} - {selectedSlip.class_name}</p>
                   </div>
                 </div>
                 <button
@@ -419,6 +415,14 @@ function BeedleDashboardContent() {
                   </div>
                   <div className="space-y-2">
                     <div className="flex justify-between">
+                      <span className="text-gray-600 text-sm">Subject:</span>
+                      <span className="font-medium text-gray-900 text-sm">{selectedSlip.subject}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600 text-sm">Class:</span>
+                      <span className="font-medium text-gray-900 text-sm">{selectedSlip.class_name}</span>
+                    </div>
+                    <div className="flex justify-between">
                       <span className="text-gray-600 text-sm">Teacher:</span>
                       <span className="font-medium text-gray-900 text-sm">{selectedSlip.teacher}</span>
                     </div>
@@ -445,7 +449,7 @@ function BeedleDashboardContent() {
                       </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600 text-sm">Form:</span>
+                      <span className="text-gray-600 text-sm">Grade Level:</span>
                       <span className="font-medium text-gray-900 text-sm">{selectedSlip.grade_level}</span>
                     </div>
                   </div>
