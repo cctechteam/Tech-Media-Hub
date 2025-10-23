@@ -1,10 +1,7 @@
 "use client";
 import Footer from "@/components/footer";
 import Navbar from "@/components/navbar";
-import { getBeedleSlips, deleteBeedleSlip, fetchCurrentUser } from "@/lib/serverUtils";
-import { retrieveSessionToken } from "@/lib/utils";
-import { ConfirmationModal } from '@/components/ConfirmationModal';
-import { useConfirmation } from '@/hooks/useConfirmation';
+import { getBeedleSlips } from "@/lib/serverUtils";
 import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import { ToastContainer } from '@/components/Toast';
@@ -37,10 +34,8 @@ type SortDirection = 'asc' | 'desc';
 
 function BeedleDashboardContent() {
   const { toasts, success, error, removeToast } = useToast();
-  const { isOpen, options, confirm, handleConfirm, handleCancel } = useConfirmation();
   const [slips, setSlips] = useState<BeedleSlip[]>([]);
   const [loading, setLoading] = useState(true);
-  const [currentUser, setCurrentUser] = useState<any>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterGrade, setFilterGrade] = useState("");
   const [filterDate, setFilterDate] = useState("");
@@ -56,17 +51,7 @@ function BeedleDashboardContent() {
 
   useEffect(() => {
     loadSlips();
-    loadCurrentUser();
   }, []);
-
-  const loadCurrentUser = async () => {
-    try {
-      const user = await fetchCurrentUser(retrieveSessionToken(), false);
-      setCurrentUser(user);
-    } catch (error) {
-      console.error("Error loading current user:", error);
-    }
-  };
 
   const loadSlips = async () => {
     try {
@@ -78,39 +63,6 @@ function BeedleDashboardContent() {
       setLoading(false);
     }
   };
-
-  const handleDeleteSlip = async (slip: BeedleSlip) => {
-    const confirmed = await confirm({
-      title: "Delete Beadle Slip",
-      message: `Are you sure you want to delete this beadle slip report?\n\nClass: ${slip.class_name} - ${slip.subject}\nTeacher: ${slip.teacher}\nDate: ${formatDate(slip.date)}\nBeadle: ${slip.beedle_email.split('@')[0]}\n\nThis action cannot be undone.`,
-      confirmText: "Delete Report",
-      cancelText: "Cancel",
-      confirmVariant: "danger"
-    });
-
-    if (confirmed) {
-      try {
-        const result = await deleteBeedleSlip(slip.id);
-        if (result.success) {
-          success("Beadle slip deleted successfully!");
-          // Remove the deleted slip from the local state
-          setSlips(prevSlips => prevSlips.filter(s => s.id !== slip.id));
-          // Close the modal if this slip was selected
-          if (selectedSlip?.id === slip.id) {
-            setSelectedSlip(null);
-          }
-        } else {
-          error(`Failed to delete beadle slip: ${result.error}`);
-        }
-      } catch (err) {
-        console.error("Error deleting beadle slip:", err);
-        error("Error deleting beadle slip. Please try again.");
-      }
-    }
-  };
-
-  // Check if current user is admin
-  const isAdmin = currentUser?.role === 2 || (currentUser?.roles && currentUser.roles.includes('admin'));
 
   const filteredSlips = slips.filter(slip => {
     const matchesSearch = searchTerm === "" || 
@@ -197,14 +149,6 @@ function BeedleDashboardContent() {
             </div>
             <h1 className="text-3xl font-bold mb-2" style={{color: '#B91C47'}}>Form Supervisor Dashboard</h1>
             <p style={{color: '#B91C47'}}>Monitor and manage beadle attendance reports across all forms</p>
-            {isAdmin && (
-              <div className="mt-2 inline-flex items-center space-x-2 bg-red-100 px-3 py-1 rounded-full">
-                <svg className="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.414-4.414a2 2 0 00-2.828 0L12 9.172 9.414 6.586a2 2 0 00-2.828 0l-3 3a2 2 0 000 2.828L6.172 15l-2.586 2.586a2 2 0 000 2.828l3 3a2 2 0 002.828 0L12 20.828l2.586 2.586a2 2 0 002.828 0l3-3a2 2 0 000-2.828L17.828 15l2.586-2.586a2 2 0 000-2.828l-3-3z" />
-                </svg>
-                <span className="text-red-600 text-sm font-medium">Admin Mode - Delete functionality enabled</span>
-              </div>
-            )}
             <div className="mt-2 text-sm text-gray-600">
               <p className="font-medium">Campion College</p>
               <p>Technology & Media Production Department</p>
@@ -381,15 +325,6 @@ function BeedleDashboardContent() {
                                   >
                                     Details
                                   </button>
-                                  {isAdmin && (
-                                    <button
-                                      onClick={() => handleDeleteSlip(slip)}
-                                      className="px-2 py-1 bg-red-600 hover:bg-red-700 text-white text-xs rounded transition-colors"
-                                      title="Delete this beadle slip (Admin only)"
-                                    >
-                                      Delete
-                                    </button>
-                                  )}
                                   {viewedReports.has(slip.id) && (
                                     <span className="text-green-600 text-xs">✓ Viewed</span>
                                   )}
@@ -675,26 +610,12 @@ function BeedleDashboardContent() {
                   )}
                 </div>
 
-                <div className="flex space-x-3">
-                  {isAdmin && (
-                    <button
-                      onClick={() => handleDeleteSlip(selectedSlip)}
-                      className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg transition-colors flex items-center space-x-2"
-                      title="Delete this beadle slip (Admin only)"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                      </svg>
-                      <span>Delete Report</span>
-                    </button>
-                  )}
-                  <button
-                    onClick={() => setSelectedSlip(null)}
-                    className="px-6 py-2 bg-gray-600 hover:bg-gray-700 text-white font-semibold rounded-lg transition-colors"
-                  >
-                    Close
-                  </button>
-                </div>
+                <button
+                  onClick={() => setSelectedSlip(null)}
+                  className="px-6 py-2 bg-gray-600 hover:bg-gray-700 text-white font-semibold rounded-lg transition-colors"
+                >
+                  Close
+                </button>
               </div>
             </div>
           </div>
@@ -705,18 +626,6 @@ function BeedleDashboardContent() {
       
       {/* Toast Notifications */}
       <ToastContainer toasts={toasts} onRemove={removeToast} />
-      
-      {/* Confirmation Modal */}
-      <ConfirmationModal
-        isOpen={isOpen}
-        title={options.title}
-        message={options.message}
-        confirmText={options.confirmText}
-        cancelText={options.cancelText}
-        confirmVariant={options.confirmVariant}
-        onConfirm={handleConfirm}
-        onCancel={handleCancel}
-      />
     </main>
   );
 }

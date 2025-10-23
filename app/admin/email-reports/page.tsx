@@ -1,15 +1,62 @@
+/**
+ * Email Reports Page - Admin Interface for Daily Supervisor Reports
+ * 
+ * This page provides an administrative interface for generating and viewing
+ * daily supervisor reports based on beadle slip attendance data. It allows
+ * administrators to:
+ * - Generate reports for a specific date
+ * - Run scheduled daily reports for today
+ * - Preview generated email content
+ * - Copy email content to clipboard for manual distribution
+ * 
+ * The system generates reports for all 6 form levels (1st-5th Form, 6A, 6B)
+ * and handles cases where no submissions exist for a particular form.
+ * 
+ * @author Tech Media Hub Team
+ * @version 1.0
+ * @since 2024
+ */
+
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
+import Image from "next/image";
 import { generateAllSupervisorReports, getTodayDate, scheduledDailyReports } from "@/lib/emailUtils";
 
+/**
+ * EmailReportsPage Component
+ * 
+ * Main component for the email reports administration interface.
+ * Manages state for date selection, report generation, and display of results.
+ */
 export default function EmailReportsPage() {
-  const [selectedDate, setSelectedDate] = useState(getTodayDate());
-  const [generatedReports, setGeneratedReports] = useState<{ [formLevel: string]: string }>({});
-  const [loading, setLoading] = useState(false);
-  const [showReports, setShowReports] = useState(false);
+  // State Management
+  const [mounted, setMounted] = useState(false); // Tracks if component has mounted (prevents hydration issues)
+  const [selectedDate, setSelectedDate] = useState(getTodayDate()); // Selected date for report generation
+  const [generatedReports, setGeneratedReports] = useState<{ [formLevel: string]: string }>({}); // Generated HTML email content by form level
+  const [loading, setLoading] = useState(false); // Loading state during report generation
+  const [showReports, setShowReports] = useState(false); // Controls visibility of generated reports section
 
+  /**
+   * Effect to handle component mounting
+   * Prevents hydration mismatches by ensuring client-side rendering
+   */
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  /**
+   * Handles generation of reports for a specific date
+   * 
+   * This function:
+   * 1. Sets loading state to show user feedback
+   * 2. Calls the email utility to generate reports for all form levels
+   * 3. Updates state with generated reports and shows results
+   * 4. Handles errors gracefully with user feedback
+   * 
+   * @async
+   */
   const handleGenerateReports = async () => {
     setLoading(true);
     try {
@@ -26,6 +73,15 @@ export default function EmailReportsPage() {
     }
   };
 
+  /**
+   * Handles running of scheduled daily reports for today's date
+   * 
+   * This is equivalent to the automated daily report generation that
+   * would normally run at 3:30 PM. It generates reports for today's date
+   * across all form levels.
+   * 
+   * @async
+   */
   const handleRunScheduledReports = async () => {
     setLoading(true);
     try {
@@ -40,10 +96,31 @@ export default function EmailReportsPage() {
     }
   };
 
+  /**
+   * Copies email content to the system clipboard
+   * 
+   * This allows administrators to manually copy and paste email content
+   * into their email client for distribution to supervisors.
+   * 
+   * @param content - The HTML email content to copy
+   */
   const copyToClipboard = (content: string) => {
     navigator.clipboard.writeText(content);
     alert('Email content copied to clipboard!');
   };
+
+  // Render loading state while component mounts to prevent hydration issues
+  if (!mounted) {
+    return (
+      <main className="min-h-screen bg-gradient-to-br from-red-50 via-white to-blue-50">
+        <Navbar />
+        <div className="flex justify-center items-center min-h-[50vh]">
+          <div className="text-xl text-gray-600">Loading email reports...</div>
+        </div>
+        <Footer />
+      </main>
+    );
+  }
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-red-50 via-white to-blue-50">
@@ -52,30 +129,40 @@ export default function EmailReportsPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header Section */}
         <div className="text-center mb-12">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-red-100 rounded-full mb-6">
-            <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-            </svg>
+          {/* Campion College Logo */}
+          <div className="flex justify-center mb-6">
+            <Image
+              src="/images/Campion_Logo.png"
+              alt="Campion College Logo"
+              width={150}
+              height={150}
+              className="object-contain"
+              priority
+            />
           </div>
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">Daily Email Reports</h1>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+          <h1 className="text-4xl font-bold mb-4" style={{color: '#B91C47'}}>Daily Email Reports</h1>
+          <p className="text-xl max-w-2xl mx-auto" style={{color: '#B91C47'}}>
             Generate comprehensive supervisor reports for beadle slip attendance data
           </p>
+          <div className="mt-2 text-sm text-gray-600">
+            <p className="font-medium">Campion College</p>
+            <p>Technology & Media Production Department</p>
+          </div>
         </div>
 
         {/* Info Banner */}
-        <div className="mb-8 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-xl p-6">
+        <div className="mb-8 bg-red-50 border border-red-200 rounded-xl p-6">
           <div className="flex items-start space-x-3">
             <div className="flex-shrink-0">
-              <svg className="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-6 h-6" style={{color: '#B91C47'}} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
             <div className="flex-1">
-              <h3 className="text-sm font-semibold text-amber-800 mb-1">Manual Email Distribution</h3>
-              <p className="text-sm text-amber-700">
+              <h3 className="text-sm font-semibold mb-1" style={{color: '#B91C47'}}>Manual Email Distribution</h3>
+              <p className="text-sm text-red-700">
                 Reports are generated for manual sending until integration with Campion's email system is complete.
-                All emails are sent from: <span className="font-mono bg-amber-100 px-2 py-1 rounded">beadleslip@campioncollege.com</span>
+                All emails are sent from: <span className="font-mono bg-red-100 px-2 py-1 rounded">beadleslip@campioncollege.com</span>
               </p>
             </div>
           </div>
@@ -89,7 +176,7 @@ export default function EmailReportsPage() {
                 <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3a4 4 0 118 0v4m-4 12v-6m0 0V7m0 6h.01" />
                 </svg>
-                <label htmlFor="reportDate" className="text-sm font-semibold text-gray-700">
+                <label htmlFor="reportDate" className="text-sm font-semibold" style={{color: '#B91C47'}}>
                   Report Date
                 </label>
               </div>
@@ -98,7 +185,8 @@ export default function EmailReportsPage() {
                 id="reportDate"
                 value={selectedDate}
                 onChange={(e) => setSelectedDate(e.target.value)}
-                className="px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent shadow-sm"
+                className="px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:border-transparent shadow-sm"
+                style={{'--tw-ring-color': '#B91C47'} as any}
               />
             </div>
             
@@ -106,7 +194,10 @@ export default function EmailReportsPage() {
               <button
                 onClick={handleGenerateReports}
                 disabled={loading}
-                className="px-6 py-3 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 disabled:from-gray-400 disabled:to-gray-500 text-white font-semibold rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:transform-none flex items-center space-x-2"
+                className="px-6 py-3 text-white font-semibold rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:transform-none flex items-center space-x-2"
+                style={{backgroundColor: loading ? '#9CA3AF' : '#B91C47'}}
+                onMouseEnter={(e) => !loading && ((e.target as HTMLElement).style.backgroundColor = '#A01B3F')}
+                onMouseLeave={(e) => !loading && ((e.target as HTMLElement).style.backgroundColor = '#B91C47')}
               >
                 {loading ? (
                   <>
@@ -128,7 +219,10 @@ export default function EmailReportsPage() {
               <button
                 onClick={handleRunScheduledReports}
                 disabled={loading}
-                className="px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 disabled:from-gray-400 disabled:to-gray-500 text-white font-semibold rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:transform-none flex items-center space-x-2"
+                className="px-6 py-3 text-white font-semibold rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:transform-none flex items-center space-x-2"
+                style={{backgroundColor: loading ? '#9CA3AF' : '#B91C47'}}
+                onMouseEnter={(e) => !loading && ((e.target as HTMLElement).style.backgroundColor = '#A01B3F')}
+                onMouseLeave={(e) => !loading && ((e.target as HTMLElement).style.backgroundColor = '#B91C47')}
               >
                 {loading ? (
                   <>
@@ -220,7 +314,10 @@ export default function EmailReportsPage() {
                           </div>
                           <button
                             onClick={() => copyToClipboard(emailContent)}
-                            className="inline-flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-semibold rounded-lg transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+                            className="inline-flex items-center space-x-2 px-4 py-2 text-white font-semibold rounded-lg transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+                            style={{backgroundColor: '#B91C47'}}
+                            onMouseEnter={(e) => (e.target as HTMLElement).style.backgroundColor = '#A01B3F'}
+                            onMouseLeave={(e) => (e.target as HTMLElement).style.backgroundColor = '#B91C47'}
                           >
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
@@ -231,10 +328,30 @@ export default function EmailReportsPage() {
                       </div>
                       
                       <div className="p-6">
-                        <div className="bg-gray-50 rounded-xl p-4 max-h-96 overflow-y-auto border border-gray-200">
-                          <pre className="text-sm whitespace-pre-wrap font-mono text-gray-700 leading-relaxed">
-                            {emailContent}
-                          </pre>
+                        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                          <div className="bg-gray-100 px-4 py-2 border-b border-gray-200 flex justify-between items-center">
+                            <span className="text-sm font-medium text-gray-700">Email Preview</span>
+                            <button
+                              onClick={() => {
+                                const previewWindow = window.open('', '_blank');
+                                if (previewWindow) {
+                                  previewWindow.document.write(emailContent);
+                                  previewWindow.document.close();
+                                }
+                              }}
+                              className="text-xs px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+                            >
+                              Open in New Tab
+                            </button>
+                          </div>
+                          <div className="max-h-96 overflow-y-auto">
+                            <iframe
+                              srcDoc={emailContent}
+                              className="w-full min-h-[400px] border-0"
+                              title={`Email preview for ${formLevel}`}
+                              sandbox="allow-same-origin"
+                            />
+                          </div>
                         </div>
                         
                         <div className="mt-6 bg-blue-50 border border-blue-200 rounded-xl p-4">

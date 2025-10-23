@@ -1,7 +1,7 @@
 "use client";
 import { MainPage } from "@/components/main";
 import UserLoading from "@/components/userloading";
-import { IsAdmin, retrieveSessionToken, Role, ValueToRole } from "@/lib/utils";
+import { IsAdmin, IsUserAdmin, retrieveSessionToken, Role, ValueToRole } from "@/lib/utils";
 import { deleteUser, fetchCurrentUser, fetchUsers } from "@/lib/serverUtils";
 import { useEffect, useState } from "react";
 import { MoreVertical, Edit2, Trash2, UserCheck, UserX } from "lucide-react";
@@ -215,7 +215,7 @@ export default function MembersPage() {
     if (!user)
         return <UserLoading />;
 
-    if (!IsAdmin(user.role))
+    if (!IsUserAdmin(user))
         return (
             <MainPage>
                 <p className="p-8 text-xl font-bold text-center text-red-800 w-full">

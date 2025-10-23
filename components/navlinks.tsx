@@ -50,33 +50,45 @@ export function RenderNavLink({
 }) {
     return link.sublinks ? (
         <div
-            className="relative"
+            className="relative group"
             onMouseEnter={() => setOpenDropdown(link.text)}
             onMouseLeave={() => setOpenDropdown(null)}
         >
-            <button className="hover:text-gray-900 transition-colors text-base text-gray-700">
-                {link.text} ▼
+            <button className="flex items-center space-x-1 px-4 py-2 rounded-lg font-medium text-gray-700 hover:text-white hover:bg-gradient-to-r hover:from-red-700 hover:to-red-800 transition-all duration-300 ease-in-out transform hover:scale-105">
+                <span>{link.text}</span>
+                <svg 
+                    className={`w-4 h-4 transition-transform duration-200 ${openDropdown === link.text ? 'rotate-180' : ''}`}
+                    fill="none" 
+                    stroke="currentColor" 
+                    viewBox="0 0 24 24"
+                >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
             </button>
             {openDropdown === link.text && (
-                <div
-                    className="absolute left-0 mt-0 w-48 bg-white border border-gray-200 rounded shadow-lg z-50"
-                >
-                    {link.sublinks.map((sub, j) => (
-                        <a
-                            key={j}
-                            href={sub.href}
-                            className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
-                        >
-                            {sub.text}
-                        </a>
-                    ))}
-                </div>
+                <>
+                    {/* Invisible bridge to prevent dropdown from closing when moving mouse */}
+                    <div className="absolute left-0 top-full w-full h-2 bg-transparent z-40"></div>
+                    <div className="absolute left-0 top-full pt-2 bg-white border border-gray-200 rounded-xl shadow-2xl z-50 overflow-hidden min-w-max">
+                        <div className="py-2">
+                            {link.sublinks.map((sub, j) => (
+                                <a
+                                    key={j}
+                                    href={sub.href}
+                                    className="flex items-center px-6 py-3 text-gray-700 hover:bg-gradient-to-r hover:from-red-50 hover:to-red-100 hover:text-red-800 transition-all duration-200 whitespace-nowrap font-medium border-l-4 border-transparent hover:border-red-500"
+                                >
+                                    <span className="flex-shrink-0">{sub.text}</span>
+                                </a>
+                            ))}
+                        </div>
+                    </div>
+                </>
             )}
         </div>
     ) : (
         <a
             href={link.href}
-            className="hover:text-gray-900 transition-colors text-base text-gray-700"
+            className="px-4 py-2 rounded-lg font-medium text-gray-700 hover:text-white hover:bg-gradient-to-r hover:from-red-700 hover:to-red-800 transition-all duration-300 ease-in-out transform hover:scale-105 whitespace-nowrap"
         >
             {link.text}
         </a>

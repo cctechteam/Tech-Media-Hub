@@ -1,3 +1,28 @@
+/**
+ * Login Page Component
+ * 
+ * Provides user authentication interface for the Tech Media Hub system.
+ * Handles user login with email/password authentication, validates
+ * Campion College email domains, and manages session tokens.
+ * 
+ * Features:
+ * - Email domain validation (@campioncollege.com only)
+ * - Password authentication with server-side verification
+ * - Session token management and storage
+ * - Loading states and error handling
+ * - Responsive design with Campion College branding
+ * - Navigation to dashboard on successful login
+ * 
+ * Security:
+ * - Restricts access to Campion College email addresses only
+ * - Secure password transmission to server
+ * - Session token storage in localStorage
+ * 
+ * @author Tech Media Hub Team
+ * @version 1.0
+ * @since 2024
+ */
+
 "use client";
 
 import { useState } from "react";
@@ -9,29 +34,52 @@ import CampionBanner from "../../../res/images/CampionBanner.png";
 import { saveSessionToken } from "@/lib/utils";
 import { signInWithPassword } from "@/lib/serverUtils";
 
+/**
+ * LoginPage Component
+ * 
+ * Main login page component that handles user authentication
+ * and redirects to dashboard on successful login.
+ */
 export default function LoginPage() {
-    const router = useRouter();
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
-    const [errorMsg, setErrorMsg] = useState("");
-    const [loading, setLoading] = useState(false);
+    const router = useRouter(); // Next.js router for navigation
+    
+    // Form state management
+    const [email, setEmail] = useState("");         // User's email input
+    const [password, setPassword] = useState("");   // User's password input
+    const [errorMsg, setErrorMsg] = useState("");   // Error message display
+    const [loading, setLoading] = useState(false);  // Loading state during authentication
 
+    /**
+     * Handles user login form submission
+     * 
+     * Process:
+     * 1. Validates email domain (@campioncollege.com only)
+     * 2. Calls server authentication function
+     * 3. Stores session token on success
+     * 4. Redirects to dashboard or shows error
+     * 
+     * @param e - Form submission event
+     */
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
-        setErrorMsg("");
+        setErrorMsg(""); // Clear any previous error messages
 
+        // Validate email domain - only Campion College emails allowed
         if (!email.trim().toLowerCase().endsWith("@campioncollege.com")) {
             setErrorMsg("Only @campioncollege.com email addresses are allowed.");
             return;
         }
 
         setLoading(true);
+        // Attempt authentication with server
         const { error, token } = await signInWithPassword({ email, password });
         setLoading(false);
 
         if (error) {
+            // Display authentication error to user
             setErrorMsg(error.message);
         } else {
+            // Save session token and redirect to dashboard
             saveSessionToken(token ?? "");
             router.push("/dashboard");
         }
