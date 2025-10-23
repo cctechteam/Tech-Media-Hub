@@ -90,12 +90,33 @@ export function IsUserAdmin(user: any): boolean {
     
     // Check new roles array system first
     if (user.roles && Array.isArray(user.roles)) {
-        return user.roles.includes('admin');
+        return user.roles.includes('admin') || user.roles.includes('super_admin');
     }
     
     // Fallback to old role system
     if (user.role !== undefined) {
         return IsAdmin(user.role);
+    }
+    
+    return false;
+}
+
+/**
+ * Checks if a user has super admin privileges
+ * 
+ * Super Admin is the highest level role, reserved for the principal and other
+ * high-level administrators. Super Admins have all admin privileges plus
+ * additional system-wide permissions.
+ * 
+ * @param user - User object with roles property
+ * @returns True if the user has super admin privileges, false otherwise
+ */
+export function IsUserSuperAdmin(user: any): boolean {
+    if (!user) return false;
+    
+    // Check if user has super_admin role
+    if (user.roles && Array.isArray(user.roles)) {
+        return user.roles.includes('super_admin');
     }
     
     return false;

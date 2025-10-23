@@ -1,7 +1,7 @@
 "use client";
 import Footer from "@/components/footer";
 import Navbar from "@/components/navbar";
-import { getBeedleSlips, deleteBeedleSlip, fetchCurrentUser } from "@/lib/serverUtils";
+import { getBeadleSlips, deleteBeadleSlip, fetchCurrentUser } from "@/lib/serverUtils";
 import { retrieveSessionToken } from "@/lib/utils";
 import { ConfirmationModal } from '@/components/ConfirmationModal';
 import { useConfirmation } from '@/hooks/useConfirmation';
@@ -11,7 +11,7 @@ import { ToastContainer } from '@/components/Toast';
 import { useToast } from '@/hooks/useToast';
 import Image from 'next/image';
 
-type BeedleSlip = {
+type BeadleSlip = {
   id: number;
   beedle_email: string;
   grade_level: string;
@@ -38,7 +38,7 @@ type SortDirection = 'asc' | 'desc';
 function BeedleDashboardContent() {
   const { toasts, success, error, removeToast } = useToast();
   const { isOpen, options, confirm, handleConfirm, handleCancel } = useConfirmation();
-  const [slips, setSlips] = useState<BeedleSlip[]>([]);
+  const [slips, setSlips] = useState<BeadleSlip[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [searchTerm, setSearchTerm] = useState("");
@@ -46,7 +46,7 @@ function BeedleDashboardContent() {
   const [filterDate, setFilterDate] = useState("");
   const [filterTeacher, setFilterTeacher] = useState("");
   const [filterSubject, setFilterSubject] = useState("");
-  const [selectedSlip, setSelectedSlip] = useState<BeedleSlip | null>(null);
+  const [selectedSlip, setSelectedSlip] = useState<BeadleSlip | null>(null);
   const [mounted, setMounted] = useState(false);
   const [viewedReports, setViewedReports] = useState<Set<number>>(new Set());
   const [sortField, setSortField] = useState<SortField>('date');
@@ -70,7 +70,7 @@ function BeedleDashboardContent() {
 
   const loadSlips = async () => {
     try {
-      const data = await getBeedleSlips();
+      const data = await getBeadleSlips();
       setSlips(data);
     } catch (error) {
       console.error("Error loading beadle slips:", error);
@@ -79,7 +79,7 @@ function BeedleDashboardContent() {
     }
   };
 
-  const handleDeleteSlip = async (slip: BeedleSlip) => {
+  const handleDeleteSlip = async (slip: BeadleSlip) => {
     const confirmed = await confirm({
       title: "Delete Beadle Slip",
       message: `Are you sure you want to delete this beadle slip report?\n\nClass: ${slip.class_name} - ${slip.subject}\nTeacher: ${slip.teacher}\nDate: ${formatDate(slip.date)}\nBeadle: ${slip.beedle_email.split('@')[0]}\n\nThis action cannot be undone.`,
@@ -90,7 +90,7 @@ function BeedleDashboardContent() {
 
     if (confirmed) {
       try {
-        const result = await deleteBeedleSlip(slip.id);
+        const result = await deleteBeadleSlip(slip.id);
         if (result.success) {
           success("Beadle slip deleted successfully!");
           // Remove the deleted slip from the local state
@@ -109,8 +109,8 @@ function BeedleDashboardContent() {
     }
   };
 
-  // Check if current user is admin
-  const isAdmin = currentUser?.role === 2 || (currentUser?.roles && currentUser.roles.includes('admin'));
+  // Check if current user is admin or super admin
+  const isAdmin = currentUser?.role === 2 || (currentUser?.roles && (currentUser.roles.includes('admin') || currentUser.roles.includes('super_admin')));
 
   const filteredSlips = slips.filter(slip => {
     const matchesSearch = searchTerm === "" || 
@@ -135,7 +135,7 @@ function BeedleDashboardContent() {
     }
     groups[form].push(slip);
     return groups;
-  }, {} as Record<string, BeedleSlip[]>);
+  }, {} as Record<string, BeadleSlip[]>);
 
   // Calculate supervisor-focused statistics
   const supervisorStats = {
@@ -185,7 +185,7 @@ function BeedleDashboardContent() {
         <div className="bg-white bg-opacity-95 backdrop-blur-sm rounded-lg shadow-lg border border-blue-100 p-8">
           <div className="text-center mb-8">
             {/* Campion College Logo */}
-            <div className="flex justify-center mb-6">
+            <div className="flex justify-center mb-2">
               <Image
                 src="/images/Campion_Logo.png"
                 alt="Campion College Logo"
@@ -195,7 +195,7 @@ function BeedleDashboardContent() {
                 priority
               />
             </div>
-            <h1 className="text-3xl font-bold mb-2" style={{color: '#B91C47'}}>Form Supervisor Dashboard</h1>
+            <h1 className="text-3xl font-bold mb-2" style={{color: '#B91C47'}}>Beadle Slip Dashboard</h1>
             <p style={{color: '#B91C47'}}>Monitor and manage beadle attendance reports across all forms</p>
             {isAdmin && (
               <div className="mt-2 inline-flex items-center space-x-2 bg-red-100 px-3 py-1 rounded-full">
@@ -205,10 +205,6 @@ function BeedleDashboardContent() {
                 <span className="text-red-600 text-sm font-medium">Admin Mode - Delete functionality enabled</span>
               </div>
             )}
-            <div className="mt-2 text-sm text-gray-600">
-              <p className="font-medium">Campion College</p>
-              <p>Technology & Media Production Department</p>
-            </div>
           </div>
 
           {/* Supervisor Controls */}
@@ -229,12 +225,12 @@ function BeedleDashboardContent() {
                   onChange={(e) => setFilterGrade(e.target.value)}
                   className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2" style={{'--tw-ring-color': '#B91C47'} as any}
                 >
-                  <option value="">All Forms</option>
-                  <option value="1st Form">1st Form</option>
-                  <option value="2nd Form">2nd Form</option>
-                  <option value="3rd Form">3rd Form</option>
-                  <option value="4th Form">4th Form</option>
-                  <option value="5th Form">5th Form</option>
+                  <option value="">All Grade Levels</option>
+                  <option value="1st">1st</option>
+                  <option value="2nd">2nd</option>
+                  <option value="3rd">3rd</option>
+                  <option value="4th">4th</option>
+                  <option value="5th">5th</option>
                   <option value="6B">6B (Lower 6th)</option>
                   <option value="6A">6A (Upper 6th)</option>
                 </select>
@@ -427,7 +423,7 @@ function BeedleDashboardContent() {
                   </div>
                   <div>
                     <h2 className="text-2xl font-bold">Beadle Slip Details</h2>
-                    <p className="text-red-100">{selectedSlip.class_name} - {selectedSlip.subject}</p>
+                    <p className="text-red-100">{selectedSlip.subject} - {selectedSlip.class_name}</p>
                   </div>
                 </div>
                 <button
@@ -484,6 +480,14 @@ function BeedleDashboardContent() {
                   </div>
                   <div className="space-y-2">
                     <div className="flex justify-between">
+                      <span className="text-gray-600 text-sm">Subject:</span>
+                      <span className="font-medium text-gray-900 text-sm">{selectedSlip.subject}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600 text-sm">Class:</span>
+                      <span className="font-medium text-gray-900 text-sm">{selectedSlip.class_name}</span>
+                    </div>
+                    <div className="flex justify-between">
                       <span className="text-gray-600 text-sm">Teacher:</span>
                       <span className="font-medium text-gray-900 text-sm">{selectedSlip.teacher}</span>
                     </div>
@@ -510,7 +514,7 @@ function BeedleDashboardContent() {
                       </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600 text-sm">Form:</span>
+                      <span className="text-gray-600 text-sm">Grade Level:</span>
                       <span className="font-medium text-gray-900 text-sm">{selectedSlip.grade_level}</span>
                     </div>
                   </div>

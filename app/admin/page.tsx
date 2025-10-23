@@ -171,6 +171,10 @@ export default function AdminDashboard() {
               <div className="text-2xl font-bold" style={{color: '#B91C47'}}>{users.filter(u => u.roles.includes('admin')).length}</div>
               <div className="text-sm text-red-800">Admins</div>
             </div>
+            <div className="bg-purple-50 border border-purple-200 rounded-xl p-4 text-center">
+              <div className="text-2xl font-bold text-purple-800">{users.filter(u => u.roles.includes('super_admin')).length}</div>
+              <div className="text-sm text-purple-800">Super Admins</div>
+            </div>
             <div className="bg-orange-50 border border-orange-200 rounded-xl p-4 text-center">
               <div className="text-2xl font-bold text-orange-600">{users.filter(u => u.roles.includes('tech_team')).length}</div>
               <div className="text-sm text-orange-800">Tech Team</div>
@@ -279,6 +283,15 @@ export default function AdminDashboard() {
                               className="rounded border-gray-300 text-red-600 focus:ring-red-500 mr-2"
                             />
                             <span className="text-sm">Tech Team</span>
+                          </label>
+                          <label className="flex items-center">
+                            <input
+                              type="checkbox"
+                              checked={user.roles.includes('super_admin')}
+                              onChange={() => handleRoleToggle(user.id, 'super_admin')}
+                              className="rounded border-gray-300 text-purple-600 focus:ring-purple-500 mr-2"
+                            />
+                            <span className="text-sm font-semibold text-purple-800">Super Admin</span>
                           </label>
                         </div>
                       </td>

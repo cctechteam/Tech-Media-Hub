@@ -17,7 +17,7 @@
  * @since 2024
  */
 
-import { getBeedleSlips } from './serverUtils';
+import { getBeadleSlips } from './serverUtils';
 
 /**
  * SupervisorEmailData Interface
@@ -78,7 +78,7 @@ export interface SupervisorEmailData {
  */
 export async function generateDailySupervisorReport(formLevel: string, date: string): Promise<SupervisorEmailData | null> {
   try {
-    const allSlips = await getBeedleSlips();
+    const allSlips = await getBeadleSlips();
     
     console.log(`DEBUG: Total slips in database: ${allSlips.length}`);
     console.log(`DEBUG: Looking for formLevel: "${formLevel}", date: "${date}"`);
@@ -261,7 +261,7 @@ export function generateEmailContent(reportData: SupervisorEmailData): string {
                  style="width: 120px; height: 120px; object-fit: contain;" />
         </div>
         <div class="title">Daily Supervisor Report - Electronic Beadle Slip</div>
-        <div class="subtitle"><strong>Form Class:</strong> ${formLevel} | <strong>Date:</strong> ${formattedDate}</div>
+        <div class="subtitle"><strong>Form:</strong> ${formLevel} | <strong>Date:</strong> ${formattedDate}</div>
         <div class="divider"></div>
     </div>
 
@@ -409,7 +409,8 @@ export function generateEmailContent(reportData: SupervisorEmailData): string {
     <div class="footer">
         <strong>Electronic Beadle Slip</strong><br>
         Report generated on ${new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}<br>
-        <em>This is an automated email. Contact the system administrator if you have questions.</em>
+        <em>This is an automated email.</em><br><br>
+        <em>Best Regards, Software Dev Team, Campion College</em>
     </div>
 </body>
 </html>`;
@@ -450,7 +451,7 @@ export function generateNoSubmissionsEmail(formLevel: string, date: string): str
                  style="width: 120px; height: 120px; object-fit: contain;" />
         </div>
         <div class="title">Daily Supervisor Report - Electronic Beadle Slip</div>
-        <div class="subtitle"><strong>Form Class:</strong> ${formLevel} | <strong>Date:</strong> ${formattedDate}</div>
+        <div class="subtitle"><strong>Form:</strong> ${formLevel} | <strong>Date:</strong> ${formattedDate}</div>
         <div class="divider"></div>
     </div>
 
@@ -458,28 +459,25 @@ export function generateNoSubmissionsEmail(formLevel: string, date: string): str
     
     <div class="no-submissions">
         <h3>No Submissions</h3>
-        <p>No beadle slips were submitted by students in ${formLevel} today.</p>
+        <p>No beadle slips were submitted by beadles in ${formLevel} today.</p>
     </div>
 
-    <p>This could indicate:</p>
-    <ul>
-        <li>No classes were held for your form</li>
-        <li>Students forgot to submit their beadle slips</li>
-        <li>Technical issues with the submission system</li>
-    </ul>
-
-    <p>Please verify with your form students and contact the Technology Team if you believe this is an error.</p>
+    <p style="margin-top: 30px; text-align: center; font-style: italic;">
+        Best Regards,<br>
+        Software Dev Team,<br>
+        Campion College
+    </p>
 
     <div class="footer">
         <strong>Electronic Beadle Slip</strong><br>
         Report generated on ${new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}<br>
-        <em>This is an automated email. Contact the system administrator if you have questions.</em>
+        <em>This is an automated email.</em>
     </div>
 </body>
 </html>`;
 }
 
-export function generateBeedleConfirmationEmail(slipData: any): string {
+export function generateBeadleConfirmationEmail(slipData: any): string {
   const formattedDate = new Date(slipData.date).toLocaleDateString('en-US', {
     weekday: 'long',
     year: 'numeric',
@@ -704,7 +702,7 @@ export function generateBeedleConfirmationEmail(slipData: any): string {
         <strong>Electronic Beadle Slip</strong><br>
         Submitted on ${new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}<br>
         <em>This is an automated email. Do not reply.</em><br><br>
-        <em>Kind Regards, Senior Tech Team, Campion College</em>
+        <em>Best Regards, Software Dev Team, Campion College</em>
     </div>
 </body>
 </html>`;
