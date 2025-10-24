@@ -161,3 +161,71 @@ export function deleteSessionToken() {
 export function retrieveSessionToken(): string {
     return localStorage.getItem("session") ?? "";
 }
+
+/**
+ * Gets the primary role for display purposes from the new roles array system
+ * 
+ * @param user - User object with roles array
+ * @returns Primary role string for display
+ */
+export function getPrimaryRole(user: any): string {
+    try {
+        if (!user || !user.roles || !Array.isArray(user.roles) || user.roles.length === 0) {
+            return 'student'; // Default fallback
+        }
+        
+        // Priority order: super_admin > admin > supervisor > beadle > student
+        if (user.roles.includes('super_admin')) return 'super_admin';
+        if (user.roles.includes('admin')) return 'admin';
+        if (user.roles.includes('supervisor')) return 'supervisor';
+        if (user.roles.includes('beadle')) return 'beadle';
+        if (user.roles.includes('student')) return 'student';
+        
+        return 'student'; // Default fallback
+    } catch (error) {
+        console.error('Error in getPrimaryRole:', error);
+        return 'student';
+    }
+}
+
+/**
+ * Gets all roles for a user as a formatted string
+ * 
+ * @param user - User object with roles array
+ * @returns Comma-separated string of roles
+ */
+export function getAllRoles(user: any): string {
+    try {
+        if (!user || !user.roles || !Array.isArray(user.roles) || user.roles.length === 0) {
+            return 'Student'; // Default fallback
+        }
+        
+        return user.roles
+            .filter((role: string) => role && typeof role === 'string')
+            .map((role: string) => role.charAt(0).toUpperCase() + role.slice(1).replace('_', ' '))
+            .join(', ') || 'Student';
+    } catch (error) {
+        console.error('Error in getAllRoles:', error);
+        return 'Student';
+    }
+}
+
+/**
+ * Checks if a user has a specific role
+ * 
+ * @param user - User object with roles array
+ * @param role - Role to check for
+ * @returns True if user has the role, false otherwise
+ */
+export function hasRole(user: any, role: string): boolean {
+    try {
+        if (!user || !user.roles || !Array.isArray(user.roles) || !role || typeof role !== 'string') {
+            return role === 'student'; // Default to student
+        }
+        
+        return user.roles.includes(role);
+    } catch (error) {
+        console.error('Error in hasRole:', error);
+        return role === 'student';
+    }
+}

@@ -50,7 +50,7 @@ export function RenderNavLink({
 }) {
     return link.sublinks ? (
         <div
-            className="relative group"
+            className="relative group z-[60]"
             onMouseEnter={() => setOpenDropdown(link.text)}
             onMouseLeave={() => setOpenDropdown(null)}
         >
@@ -68,8 +68,8 @@ export function RenderNavLink({
             {openDropdown === link.text && (
                 <>
                     {/* Invisible bridge to prevent dropdown from closing when moving mouse */}
-                    <div className="absolute left-0 top-full w-full h-2 bg-transparent z-40"></div>
-                    <div className="absolute left-0 top-full pt-2 bg-white border border-gray-200 rounded-xl shadow-2xl z-50 overflow-hidden min-w-max">
+                    <div className="absolute left-0 top-full w-full h-2 bg-transparent z-[60]"></div>
+                    <div className="absolute left-0 top-full pt-2 bg-white border border-gray-200 rounded-xl shadow-2xl z-[60] overflow-hidden min-w-max">
                         <div className="py-2">
                             {link.sublinks.map((sub, j) => (
                                 <a

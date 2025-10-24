@@ -103,7 +103,7 @@ export default function Navbar() {
                 </div>
 
                 {/* Desktop Links */}
-                <nav className="hidden md:flex space-x-2 font-medium items-center mx-auto relative">
+                <nav className="hidden md:flex space-x-2 font-medium items-center mx-auto relative z-[60]">
                     <RenderNavLinks links={Navlinks} />
                 </nav>
 

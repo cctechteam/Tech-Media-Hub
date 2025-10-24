@@ -199,9 +199,12 @@ export default function SupervisorDashboard() {
                 className="px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:border-transparent shadow-sm"
                 style={{'--tw-ring-color': '#B91C47'} as any}
               >
-                <option value="all">All Roles</option>
+                <option value="all">All Users</option>
                 <option value="student">Students</option>
                 <option value="beadle">Beadles</option>
+                <option value="supervisor">Supervisors</option>
+                <option value="admin">Admins</option>
+                <option value="super_admin">Super Admins</option>
               </select>
               
               <button
@@ -363,6 +366,15 @@ export default function SupervisorDashboard() {
                               className="rounded border-gray-300 text-red-600 focus:ring-red-500 mr-2"
                             />
                             <span className="text-sm">Supervisor</span>
+                          </label>
+                          <label className="flex items-center">
+                            <input
+                              type="checkbox"
+                              checked={user.roles.includes('admin')}
+                              onChange={() => handleRoleToggle(user.id, 'admin')}
+                              className="rounded border-gray-300 text-red-600 focus:ring-red-500 mr-2"
+                            />
+                            <span className="text-sm">Admin</span>
                           </label>
                         </div>
                       </td>
