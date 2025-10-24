@@ -59,9 +59,10 @@ export async function signOut() {
  * 
  * @param email - User's email address (must be unique)
  * @param password - Plain text password (will be hashed)
+ * @param fullName - User's full name (first and last name)
  * @returns Object with error property (undefined on success)
  */
-export async function signUp({ email, password }: { email: string; password: string }) {
+export async function signUp({ email, password, fullName }: { email: string; password: string; fullName: string }) {
     try {
         const db = await getDatabase();
         
@@ -74,9 +75,9 @@ export async function signUp({ email, password }: { email: string; password: str
         // Hash password using bcrypt with configured salt rounds
         const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
 
-        // Insert new user into database
-        db.prepare("INSERT INTO members (email, password) VALUES (?, ?)")
-            .run(email, passwordHash);
+        // Insert new user into database with full name
+        db.prepare("INSERT INTO members (email, password, full_name) VALUES (?, ?, ?)")
+            .run(email, passwordHash, fullName);
 
         return { error: undefined };
     } catch (err: any) {
@@ -210,11 +211,21 @@ export async function fetchCurrentUser(
 
     try {
         const db = await getDatabase();
+        
+        // First, try to migrate users if needed
+        await migrateUsersToRoleSystem();
 
-        const member = db.prepare("SELECT * FROM members WHERE id = ?").get(user.userId);
+        const member = db.prepare("SELECT * FROM members WHERE id = ?").get(user.userId) as any;
 
         if (member) {
-            return member;
+            // Parse roles JSON and ensure proper structure
+            const parsedRoles = JSON.parse(member.roles || '["student"]');
+            console.log(`Current user ${member.full_name} (${member.email}) has roles:`, parsedRoles);
+            return {
+                ...member,
+                roles: parsedRoles,
+                created_at: member.created_at || member.createdAt || new Date().toISOString()
+            };
         }
     } catch (err: any) {
         console.error("Error fetching member:", err.message);
@@ -405,12 +416,15 @@ export async function migrateUsersToRoleSystem() {
             SELECT id, role, roles FROM members
         `).all();
 
-        console.log(`Found ${users.length} users to migrate`);
+        console.log(`Found ${users.length} users to check for migration`);
 
         for (const user of users as any[]) {
+            let shouldUpdate = false;
+            let newRoles = ['student']; // Default to student
+            
             // If roles column is null or empty, migrate from old role field
-            if (!user.roles || user.roles === null) {
-                let newRoles = ['student']; // Default to student
+            if (!user.roles || user.roles === null || user.roles === '') {
+                shouldUpdate = true;
                 
                 // Map old integer roles to new string roles
                 if (user.role === 0) {
@@ -418,13 +432,41 @@ export async function migrateUsersToRoleSystem() {
                 } else if (user.role === 1) {
                     newRoles = ['student', 'beadle']; // Student + beadle
                 } else if (user.role === 2) {
-                    newRoles = ['student', 'admin', 'tech_team']; // Tech team member (student + admin)
+                    newRoles = ['supervisor', 'student']; // Supervisor (also student)
                 } else if (user.role === 3) {
-                    newRoles = ['supervisor']; // Pure supervisor (not student)
+                    newRoles = ['admin', 'supervisor', 'student']; // Admin with all privileges
                 } else {
                     newRoles = ['student']; // Default fallback
                 }
+            } else {
+                // Parse existing roles and ensure proper role structure
+                try {
+                    const existingRoles = JSON.parse(user.roles);
+                    if (Array.isArray(existingRoles) && existingRoles.length > 0) {
+                        // Keep existing roles but ensure they're valid
+                        newRoles = existingRoles.filter(role => 
+                            ['student', 'beadle', 'supervisor', 'admin', 'super_admin'].includes(role)
+                        );
+                        
+                        // If no valid roles found, default to student
+                        if (newRoles.length === 0) {
+                            newRoles = ['student'];
+                            shouldUpdate = true;
+                        }
+                        
+                        // Don't force student role on admins/supervisors if they don't have it
+                        // This preserves the existing role structure
+                    } else {
+                        newRoles = ['student'];
+                        shouldUpdate = true;
+                    }
+                } catch (e) {
+                    newRoles = ['student'];
+                    shouldUpdate = true;
+                }
+            }
 
+            if (shouldUpdate) {
                 // Update the user with new roles
                 db.prepare(`
                     UPDATE members 
@@ -440,6 +482,37 @@ export async function migrateUsersToRoleSystem() {
     } catch (err: any) {
         console.error("Error migrating users:", err.message);
         return { success: false, error: err.message };
+    }
+}
+
+/**
+ * Debug function to check a specific user's roles
+ * @param userEmail - Email of the user to check
+ */
+export async function debugUserRoles(userEmail: string) {
+    try {
+        const db = await getDatabase();
+        const user = db.prepare("SELECT * FROM members WHERE email = ?").get(userEmail) as any;
+        
+        if (user) {
+            console.log("Raw user data:", user);
+            console.log("Raw roles field:", user.roles);
+            
+            try {
+                const parsedRoles = JSON.parse(user.roles || '["student"]');
+                console.log("Parsed roles:", parsedRoles);
+                return { user, parsedRoles };
+            } catch (e) {
+                console.log("Error parsing roles:", e);
+                return { user, parsedRoles: ["student"] };
+            }
+        } else {
+            console.log("User not found");
+            return null;
+        }
+    } catch (err: any) {
+        console.error("Error in debugUserRoles:", err.message);
+        return null;
     }
 }
 
@@ -469,11 +542,17 @@ export async function getAllUsers() {
 
         console.log(`Fetched ${users.length} users from database`);
 
-        return users.map((user: any) => ({
-            ...user,
-            roles: JSON.parse(user.roles || '["student"]'),
-            created_at: user.created_at || user.createdAt || new Date().toISOString()
-        }));
+        const processedUsers = users.map((user: any) => {
+            const parsedRoles = JSON.parse(user.roles || '["student"]');
+            console.log(`User ${user.full_name} (${user.email}) has roles:`, parsedRoles);
+            return {
+                ...user,
+                roles: parsedRoles,
+                created_at: user.created_at || user.createdAt || new Date().toISOString()
+            };
+        });
+        
+        return processedUsers;
     } catch (err: any) {
         console.error("Error fetching users:", err.message);
         return [];
@@ -742,5 +821,422 @@ export async function bulkUpdateUserRoles(updates: Array<{userId: string, newRol
     } catch (err: any) {
         console.error("Error in bulk update:", err.message);
         return { success: false, error: err.message };
+    }
+}
+
+/**
+ * Update User Profile Function
+ * 
+ * Updates user profile information including name, email, form class, and optionally password.
+ * Validates current password if password change is requested.
+ * 
+ * @param userId - ID of the user to update
+ * @param updateData - Object containing profile updates
+ * @returns Object with success status and error message if applicable
+ */
+export async function updateUserProfile(userId: number, updateData: {
+    full_name?: string;
+    email?: string;
+    form_class?: string;
+    currentPassword?: string;
+    newPassword?: string;
+}) {
+    try {
+        // console.log("updateUserProfile called with:", { userId, updateData });
+        
+        // Validate inputs
+        if (!userId || typeof userId !== 'number') {
+            return { success: false, error: "Invalid user ID" };
+        }
+        
+        if (!updateData || typeof updateData !== 'object') {
+            return { success: false, error: "Invalid update data" };
+        }
+        
+        const db = await getDatabase();
+        
+        // If password change is requested, verify current password first
+        if (updateData.newPassword && updateData.currentPassword) {
+            const user = db.prepare("SELECT password FROM members WHERE id = ?").get(userId) as any;
+            if (!user) {
+                return { success: false, error: "User not found" };
+            }
+            
+            const isValidPassword = await bcrypt.compare(updateData.currentPassword, user.password);
+            if (!isValidPassword) {
+                return { success: false, error: "Current password is incorrect" };
+            }
+        }
+        
+        // Check if email is already taken by another user
+        if (updateData.email) {
+            const existingUser = db.prepare("SELECT id FROM members WHERE email = ? AND id != ?").get(updateData.email, userId);
+            if (existingUser) {
+                return { success: false, error: "Email address is already in use" };
+            }
+        }
+        
+        // Build update query dynamically
+        const updateFields: string[] = [];
+        const updateValues: any[] = [];
+        
+        if (updateData.full_name) {
+            updateFields.push("full_name = ?");
+            updateValues.push(updateData.full_name);
+        }
+        
+        if (updateData.email) {
+            updateFields.push("email = ?");
+            updateValues.push(updateData.email);
+        }
+        
+        if (updateData.form_class !== undefined) {
+            updateFields.push("form_class = ?");
+            updateValues.push(updateData.form_class || null);
+        }
+        
+        if (updateData.newPassword) {
+            const hashedPassword = await bcrypt.hash(updateData.newPassword, SALT_ROUNDS);
+            updateFields.push("password = ?");
+            updateValues.push(hashedPassword);
+        }
+        
+        // Check if updated_at column exists and add it if it does
+        try {
+            const tableInfo = db.prepare("PRAGMA table_info(members)").all() as any[];
+            const hasUpdatedAt = tableInfo.some((column: any) => column.name === 'updated_at');
+            
+            if (hasUpdatedAt) {
+                updateFields.push("updated_at = ?");
+                updateValues.push(new Date().toISOString());
+            }
+        } catch (e) {
+            console.log("Could not check for updated_at column:", e);
+        }
+        
+        if (updateFields.length === 0) {
+            return { success: false, error: "No fields to update" };
+        }
+        
+        // Execute update - add userId at the end for WHERE clause
+        const query = `UPDATE members SET ${updateFields.join(", ")} WHERE id = ?`;
+        // console.log("Executing query:", query);
+        // console.log("With values:", [...updateValues, userId]);
+        
+        const result = db.prepare(query).run(...updateValues, userId);
+        // console.log("Query result:", result);
+        
+        if (result.changes === 0) {
+            return { success: false, error: "User not found or no changes made" };
+        }
+        
+        return { success: true };
+        
+    } catch (err: any) {
+        console.error("Error updating user profile:", err.message);
+        console.error("Stack trace:", err.stack);
+        console.error("Update data:", updateData);
+        console.error("User ID:", userId);
+        return { success: false, error: `Failed to update profile: ${err.message}` };
+    }
+}
+
+// ===== TASK MANAGEMENT FUNCTIONS =====
+
+/**
+ * Fetch Tasks Function
+ * 
+ * Retrieves tasks from the database with user information
+ * 
+ * @param userId - Optional user ID to filter tasks
+ * @returns Array of tasks with user details
+ */
+export async function fetchTasks(userId?: number) {
+    try {
+        const db = await getDatabase();
+        
+        let query = `
+            SELECT 
+                t.*,
+                creator.full_name as creator_name,
+                assignee.full_name as assignee_name
+            FROM tasks t
+            LEFT JOIN members creator ON t.created_by = creator.id
+            LEFT JOIN members assignee ON t.assigned_to = assignee.id
+        `;
+        
+        if (userId) {
+            query += ` WHERE t.assigned_to = ? OR t.created_by = ?`;
+            return db.prepare(query + ` ORDER BY t.created_at DESC`).all(userId, userId);
+        } else {
+            return db.prepare(query + ` ORDER BY t.created_at DESC`).all();
+        }
+    } catch (err: any) {
+        console.error("Error fetching tasks:", err.message);
+        return [];
+    }
+}
+
+/**
+ * Create Task Function
+ * 
+ * Creates a new task in the database
+ * 
+ * @param taskData - Task information
+ * @returns Success status and task ID
+ */
+export async function createTask(taskData: {
+    title: string;
+    description?: string;
+    assigned_to?: number;
+    created_by: number;
+    priority?: string;
+    due_date?: string;
+}) {
+    try {
+        const db = await getDatabase();
+        
+        const result = db.prepare(`
+            INSERT INTO tasks (title, description, assigned_to, created_by, priority, due_date)
+            VALUES (?, ?, ?, ?, ?, ?)
+        `).run(
+            taskData.title,
+            taskData.description || null,
+            taskData.assigned_to || null,
+            taskData.created_by,
+            taskData.priority || 'medium',
+            taskData.due_date || null
+        );
+        
+        return { success: true, taskId: result.lastInsertRowid };
+    } catch (err: any) {
+        console.error("Error creating task:", err.message);
+        return { success: false, error: "Failed to create task" };
+    }
+}
+
+/**
+ * Update Task Status Function
+ * 
+ * Updates the status of a task
+ * 
+ * @param taskId - Task ID to update
+ * @param status - New status
+ * @returns Success status
+ */
+export async function updateTaskStatus(taskId: number, status: string) {
+    try {
+        const db = await getDatabase();
+        
+        const result = db.prepare(`
+            UPDATE tasks 
+            SET status = ?, updated_at = CURRENT_TIMESTAMP 
+            WHERE id = ?
+        `).run(status, taskId);
+        
+        return { success: result.changes > 0 };
+    } catch (err: any) {
+        console.error("Error updating task status:", err.message);
+        return { success: false, error: "Failed to update task" };
+    }
+}
+
+// ===== EVENT MANAGEMENT FUNCTIONS =====
+
+/**
+ * Fetch Events Function
+ * 
+ * Retrieves events from the database
+ * 
+ * @param limit - Optional limit for number of events
+ * @returns Array of events
+ */
+export async function fetchEvents(limit?: number) {
+    try {
+        const db = await getDatabase();
+        
+        let query = `
+            SELECT 
+                e.*,
+                creator.full_name as creator_name
+            FROM events e
+            LEFT JOIN members creator ON e.created_by = creator.id
+            ORDER BY e.event_date ASC, e.start_time ASC
+        `;
+        
+        if (limit) {
+            query += ` LIMIT ?`;
+            return db.prepare(query).all(limit);
+        } else {
+            return db.prepare(query).all();
+        }
+    } catch (err: any) {
+        console.error("Error fetching events:", err.message);
+        return [];
+    }
+}
+
+/**
+ * Create Event Function
+ * 
+ * Creates a new event in the database
+ * 
+ * @param eventData - Event information
+ * @returns Success status and event ID
+ */
+export async function createEvent(eventData: {
+    title: string;
+    description?: string;
+    event_date: string;
+    start_time?: string;
+    end_time?: string;
+    location?: string;
+    created_by: number;
+    event_type?: string;
+}) {
+    try {
+        const db = await getDatabase();
+        
+        const result = db.prepare(`
+            INSERT INTO events (title, description, event_date, start_time, end_time, location, created_by, event_type)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        `).run(
+            eventData.title,
+            eventData.description || null,
+            eventData.event_date,
+            eventData.start_time || null,
+            eventData.end_time || null,
+            eventData.location || null,
+            eventData.created_by,
+            eventData.event_type || 'general'
+        );
+        
+        return { success: true, eventId: result.lastInsertRowid };
+    } catch (err: any) {
+        console.error("Error creating event:", err.message);
+        return { success: false, error: "Failed to create event" };
+    }
+}
+
+// ===== MESSAGE MANAGEMENT FUNCTIONS =====
+
+/**
+ * Fetch Messages Function
+ * 
+ * Retrieves messages for a user
+ * 
+ * @param userId - User ID to fetch messages for
+ * @param limit - Optional limit for number of messages
+ * @returns Array of messages
+ */
+export async function fetchMessages(userId: number, limit?: number) {
+    try {
+        const db = await getDatabase();
+        
+        let query = `
+            SELECT 
+                m.*,
+                sender.full_name as sender_name
+            FROM messages m
+            LEFT JOIN members sender ON m.sender_id = sender.id
+            WHERE m.recipient_id = ? OR m.recipient_id IS NULL
+            ORDER BY m.created_at DESC
+        `;
+        
+        if (limit) {
+            query += ` LIMIT ?`;
+            return db.prepare(query).all(userId, limit);
+        } else {
+            return db.prepare(query).all(userId);
+        }
+    } catch (err: any) {
+        console.error("Error fetching messages:", err.message);
+        return [];
+    }
+}
+
+/**
+ * Create Message Function
+ * 
+ * Creates a new message
+ * 
+ * @param messageData - Message information
+ * @returns Success status and message ID
+ */
+export async function createMessage(messageData: {
+    sender_id: number;
+    recipient_id?: number;
+    subject?: string;
+    content: string;
+    message_type?: string;
+}) {
+    try {
+        const db = await getDatabase();
+        
+        const result = db.prepare(`
+            INSERT INTO messages (sender_id, recipient_id, subject, content, message_type)
+            VALUES (?, ?, ?, ?, ?)
+        `).run(
+            messageData.sender_id,
+            messageData.recipient_id || null,
+            messageData.subject || null,
+            messageData.content,
+            messageData.message_type || 'direct'
+        );
+        
+        return { success: true, messageId: result.lastInsertRowid };
+    } catch (err: any) {
+        console.error("Error creating message:", err.message);
+        return { success: false, error: "Failed to create message" };
+    }
+}
+
+/**
+ * Get Dashboard Stats Function
+ * 
+ * Retrieves statistics for the dashboard
+ * 
+ * @param userId - User ID for personalized stats
+ * @returns Object with various statistics
+ */
+export async function getDashboardStats(userId: number) {
+    try {
+        const db = await getDatabase();
+        
+        // Get announcement count
+        const announcementCount = db.prepare("SELECT COUNT(*) as count FROM announcements").get() as any;
+        
+        // Get task count for user
+        const taskCount = db.prepare(`
+            SELECT COUNT(*) as count FROM tasks 
+            WHERE assigned_to = ? AND status != 'completed'
+        `).get(userId) as any;
+        
+        // Get upcoming events count
+        const eventCount = db.prepare(`
+            SELECT COUNT(*) as count FROM events 
+            WHERE event_date >= date('now') AND status = 'upcoming'
+        `).get() as any;
+        
+        // Get unread messages count
+        const messageCount = db.prepare(`
+            SELECT COUNT(*) as count FROM messages 
+            WHERE (recipient_id = ? OR recipient_id IS NULL) AND is_read = FALSE
+        `).get(userId) as any;
+        
+        return {
+            announcements: announcementCount.count,
+            tasks: taskCount.count,
+            events: eventCount.count,
+            messages: messageCount.count
+        };
+    } catch (err: any) {
+        console.error("Error fetching dashboard stats:", err.message);
+        return {
+            announcements: 0,
+            tasks: 0,
+            events: 0,
+            messages: 0
+        };
     }
 }

@@ -7,10 +7,11 @@
  * 
  * Features:
  * - Email domain validation (@campioncollege.com only)
+ * - Enhanced form validation with required field checks
  * - Password authentication with server-side verification
  * - Session token management and storage
- * - Loading states and error handling
- * - Responsive design with Campion College branding
+ * - Improved loading states and error handling
+ * - Modern responsive design with enhanced styling
  * - Navigation to dashboard on successful login
  * 
  * Security:
@@ -64,6 +65,17 @@ export default function LoginPage() {
         e.preventDefault();
         setErrorMsg(""); // Clear any previous error messages
 
+        // Validate required fields
+        if (!email.trim()) {
+            setErrorMsg("Email is required.");
+            return;
+        }
+
+        if (!password.trim()) {
+            setErrorMsg("Password is required.");
+            return;
+        }
+
         // Validate email domain - only Campion College emails allowed
         if (!email.trim().toLowerCase().endsWith("@campioncollege.com")) {
             setErrorMsg("Only @campioncollege.com email addresses are allowed.");
@@ -90,8 +102,8 @@ export default function LoginPage() {
             <Navbar />
 
             {/* Form Section */}
-            <section className="w-full py-12 px-6 md:px-16 lg:px-24 flex justify-center">
-                <div className="p-8 rounded-2xl shadow-lg w-full max-w-md">
+            <section className="w-full py-12 px-6 md:px-16 lg:px-24 flex justify-center bg-gray-50 flex-1">
+                <div className="p-8 rounded-2xl shadow-xl bg-white border border-gray-200 w-full max-w-md">
                     <div className="w-full flex pb-4 justify-center pointer-events-none">
                         <Image
                             src={CampionBanner}
@@ -100,13 +112,15 @@ export default function LoginPage() {
                         />
                     </div>
 
+                    <h2 className="text-2xl font-bold text-center text-gray-800 mb-6">Welcome Back</h2>
+
                     <form onSubmit={handleLogin} className="space-y-4">
                         <input
                             type="email"
                             placeholder="Email (@campioncollege.com)"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
-                            className="w-full p-3 rounded border border-gray-700 focus:outline-none focus:border-red-500"
+                            className="w-full p-3 rounded border border-gray-700 focus:outline-none focus:border-red-500 bg-white text-gray-900 transition-colors"
                             required
                         />
                         <input
@@ -114,7 +128,7 @@ export default function LoginPage() {
                             placeholder="Password"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
-                            className="w-full p-3 rounded border border-gray-700 focus:outline-none focus:border-red-500"
+                            className="w-full p-3 rounded border border-gray-700 focus:outline-none focus:border-red-500 bg-white text-gray-900 transition-colors"
                             required
                         />
                         {errorMsg && <p className="text-red-400 text-sm">{errorMsg}</p>}
