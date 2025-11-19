@@ -67,7 +67,6 @@ export function RenderNavLink({
             </button>
             {openDropdown === link.text && (
                 <>
-                    {/* Invisible bridge to prevent dropdown from closing when moving mouse */}
                     <div className="absolute left-0 top-full w-full h-2 bg-transparent z-[60]"></div>
                     <div className="absolute left-0 top-full pt-2 bg-white border border-gray-200 rounded-xl shadow-2xl z-[60] overflow-hidden min-w-max">
                         <div className="py-2">

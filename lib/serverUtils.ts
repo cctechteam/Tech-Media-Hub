@@ -1,23 +1,3 @@
-/**
- * Server Utilities for Authentication and Data Management
- * 
- * This module provides server-side functions for user authentication,
- * session management, and database operations for the beadle slip system.
- * All functions run on the server side and handle sensitive operations
- * like password hashing and database queries.
- * 
- * Key Features:
- * - User registration and authentication
- * - Session token management
- * - Beadle slip CRUD operations
- * - Announcement management
- * - Secure password handling with bcrypt
- * 
- * @author Tech Media Hub Team
- * @version 1.0
- * @since 2024
- */
-
 "use server";
 
 import bcrypt from "bcrypt";
@@ -25,59 +5,33 @@ import { v4 as uuidv4 } from "uuid";
 import { getDatabase } from "./database";
 import { redirect } from "next/navigation";
 
-/**
- * Authentication Configuration
- * 
- * SALT_ROUNDS: Number of rounds for bcrypt password hashing
- * Higher values = more secure but slower processing
- */
 const SALT_ROUNDS = 10;
 
-/**
- * Sign Out Function
- * 
- * Currently a placeholder that returns success.
- * In a full implementation, this would:
- * - Invalidate the user's session token
- * - Clear server-side session data
- * - Log the sign-out event
- * 
- * @returns Success response
- */
 export async function signOut() {
     return { success: true };
 }
 
-/**
- * User Registration Function
- * 
- * Handles new user account creation with the following steps:
- * 1. Validates email uniqueness
- * 2. Hashes password using bcrypt
- * 3. Inserts new user record into database
- * 4. Returns success/error response
- * 
- * @param email - User's email address (must be unique)
- * @param password - Plain text password (will be hashed)
- * @param fullName - User's full name (first and last name)
- * @returns Object with error property (undefined on success)
- */
-export async function signUp({ email, password, fullName }: { email: string; password: string; fullName: string }) {
+export async function signUp({ email, password, fullName, formClass }: { email: string; password: string; fullName: string; formClass?: string }) {
     try {
         const db = await getDatabase();
         
-        // Check if email is already registered
         const existing = db.prepare("SELECT id FROM members WHERE email = ?").get(email);
         if (existing) {
             return { error: { message: "Email already registered" } };
         }
 
-        // Hash password using bcrypt with configured salt rounds
         const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
 
-        // Insert new user into database with full name
-        db.prepare("INSERT INTO members (email, password, full_name) VALUES (?, ?, ?)")
-            .run(email, passwordHash, fullName);
+        const result = db.prepare("INSERT INTO members (email, password, full_name, form_class) VALUES (?, ?, ?, ?)")
+            .run(email, passwordHash, fullName, formClass || null);
+
+        const memberId = result.lastInsertRowid as number;
+        const studentRole = db.prepare("SELECT id FROM roles WHERE role_name = 'student'").get() as any;
+        
+        if (studentRole) {
+            db.prepare("INSERT INTO member_roles (member_id, role_id) VALUES (?, ?)")
+                .run(memberId, studentRole.id);
+        }
 
         return { error: undefined };
     } catch (err: any) {
@@ -86,20 +40,6 @@ export async function signUp({ email, password, fullName }: { email: string; pas
     }
 }
 
-/**
- * User Authentication Function
- * 
- * Handles user login with email and password authentication.
- * Process:
- * 1. Looks up user by email address
- * 2. Compares provided password with stored hash using bcrypt
- * 3. Creates a new session token on successful authentication
- * 4. Returns session token or error message
- * 
- * @param email - User's email address
- * @param password - Plain text password for verification
- * @returns Object containing either session token or error message
- */
 export async function signInWithPassword({ email, password }: { email: string; password: string }): Promise<{
     error?: { message: string }
     token?: string
@@ -107,19 +47,16 @@ export async function signInWithPassword({ email, password }: { email: string; p
     try {
         const db = await getDatabase();
 
-        // Look up user by email address
         const user: any = db.prepare("SELECT * FROM members WHERE email = ?").get(email);
         if (!user) {
             return { error: { message: "Email not registered" } };
         }
 
-        // Verify password using bcrypt comparison
         const isValid = await bcrypt.compare(password, user.password);
         if (!isValid) {
             return { error: { message: "Invalid password" } };
         }
 
-        // Create new session token for authenticated user
         const { error, token } = await createSession(user.id);
 
         if (!error && token) {
@@ -134,21 +71,10 @@ export async function signInWithPassword({ email, password }: { email: string; p
     }
 }
 
-/**
- * Session Creation Function
- * 
- * Creates a new session record for an authenticated user.
- * Generates a unique UUID token and stores it in the database
- * linked to the user's ID.
- * 
- * @param userId - The ID of the user to create a session for
- * @returns Object containing session token or error message
- */
 export async function createSession(userId: number): Promise<{ token?: string, error?: { message: string } }> {
     try {
         const db = await getDatabase();
 
-        // Generate unique session token using UUID
         const token = uuidv4();
         db.prepare("INSERT INTO sessions (userId, token) VALUES (?, ?)").run(userId, token);
         return { token };
@@ -157,23 +83,12 @@ export async function createSession(userId: number): Promise<{ token?: string, e
     }
 }
 
-/**
- * Session Lookup Function
- * 
- * Retrieves session information by token and joins with user data.
- * This function validates session tokens and returns associated
- * user information for authentication purposes.
- * 
- * @param token - Session token to look up
- * @returns Object containing user session data or error message
- */
 export async function getSession(token: string): Promise<{ user?: any; error?: { message: string } }> {
     try {
         const db = await getDatabase();
 
-        // Join sessions with members table to get complete user info
         const session = db.prepare(`
-            SELECT s.token, s.createdAt, m.id as userId, m.email, m.role, m.full_name
+            SELECT s.token, s.createdAt, m.id as userId, m.email, m.full_name
              FROM sessions s
              JOIN members m ON s.userId = m.id
              WHERE s.token = ?
@@ -194,9 +109,8 @@ export async function deleteUser(id: any) {
 
 }
 
-// Fetches the corresponding record from members whose id matches current session user
 export async function fetchCurrentUser(
-    token: string, // pass session token (from cookie or header)
+    token: string,
     redirectToLogin = true
 ): Promise<any | undefined> {
     const { user, error } = await getSession(token);
@@ -211,19 +125,19 @@ export async function fetchCurrentUser(
 
     try {
         const db = await getDatabase();
-        
-        // First, try to migrate users if needed
-        await migrateUsersToRoleSystem();
+        const { getMemberRoles } = await import("./role-db-helpers");
 
         const member = db.prepare("SELECT * FROM members WHERE id = ?").get(user.userId) as any;
 
         if (member) {
-            // Parse roles JSON and ensure proper structure
-            const parsedRoles = JSON.parse(member.roles || '["student"]');
-            console.log(`Current user ${member.full_name} (${member.email}) has roles:`, parsedRoles);
+            const roles = await getMemberRoles(member.id);
+            const roleNames = roles.map((r: any) => r.role_name);
+            
+            console.log(`Current user ${member.full_name} (${member.email}) has roles:`, roleNames);
             return {
                 ...member,
-                roles: parsedRoles,
+                roles: roleNames,
+                roleDetails: roles,
                 created_at: member.created_at || member.createdAt || new Date().toISOString()
             };
         }
@@ -234,23 +148,10 @@ export async function fetchCurrentUser(
     return undefined;
 }
 
-// Fetches all records from members
 export async function fetchUsers() {
     try {
-        const db = await getDatabase();
-        
-        // First, try to migrate users if needed
-        await migrateUsersToRoleSystem();
-        
-        const rows = db.prepare("SELECT * FROM members").all();
-        
-        // Process rows to include both old and new role systems for compatibility
-        return rows.map((user: any) => ({
-            ...user,
-            roles: JSON.parse(user.roles || '["student"]'),
-            // Keep the old role field for backward compatibility
-            role: user.role || 0
-        }));
+        const { getAllMembersWithRoles } = await import("./role-db-helpers");
+        return await getAllMembersWithRoles();
     } catch (err: any) {
         console.error("Error fetching members:", err.message);
     }
@@ -258,8 +159,6 @@ export async function fetchUsers() {
     return [];
 }
 
-// ANNOUNCEMENTS
-// Fetches all records from announcements
 export async function fetchAnnouncements() {
     try {
         const db = await getDatabase();
@@ -272,7 +171,6 @@ export async function fetchAnnouncements() {
     return [];
 }
 
-// Add a record to announcements
 export async function createAnnouncement(title: string, priority: string, content: string) {
     try {
         const db = await getDatabase();
@@ -283,7 +181,6 @@ export async function createAnnouncement(title: string, priority: string, conten
     }
 }
 
-// Delete a record from announcements
 export async function deleteAnnouncement(id: number) {
     try {
         const db = await getDatabase();
@@ -293,9 +190,8 @@ export async function deleteAnnouncement(id: number) {
     }
 }
 
-// BEADLE SLIPS
 export async function saveBeadleSlip(formData: {
-    beedleEmail: string;
+    beadleEmail: string;
     form: string;
     formClass: string;
     classStartTime: string;
@@ -315,15 +211,15 @@ export async function saveBeadleSlip(formData: {
         const db = await getDatabase();
         
         const stmt = db.prepare(`
-            INSERT INTO beedle_slips (
-                beedle_email, grade_level, class_name, class_start_time, class_end_time,
+            INSERT INTO beadle_slips (
+                beadle_email, grade_level, class_name, class_start_time, class_end_time,
                 date, teacher, subject, teacher_present, teacher_arrival_time,
                 substitute_received, homework_given, students_present, absent_students, late_students
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `);
         
         const result = stmt.run(
-            formData.beedleEmail,
+            formData.beadleEmail,
             formData.form,
             formData.formClass,
             formData.classStartTime,
@@ -342,7 +238,7 @@ export async function saveBeadleSlip(formData: {
         
         return { success: true, id: result.lastInsertRowid };
     } catch (err: any) {
-        console.error("Error saving beedle slip:", err.message);
+        console.error("Error saving beadle slip:", err.message);
         return { success: false, error: err.message };
     }
 }
@@ -352,7 +248,7 @@ export async function getBeadleSlips() {
         const db = await getDatabase();
         
         const slips = db.prepare(`
-            SELECT * FROM beedle_slips 
+            SELECT * FROM beadle_slips 
             ORDER BY created_at DESC
         `).all();
         
@@ -362,33 +258,21 @@ export async function getBeadleSlips() {
             late_students: JSON.parse(slip.late_students || '[]')
         }));
     } catch (err: any) {
-        console.error("Error fetching beedle slips:", err.message);
+        console.error("Error fetching beadle slips:", err.message);
         return [];
     }
 }
 
-/**
- * Deletes a beadle slip report from the database
- * 
- * This function allows administrators to remove beadle slip reports.
- * It performs a hard delete from the database and cannot be undone.
- * Should only be called by users with admin privileges.
- * 
- * @param slipId - The ID of the beadle slip to delete
- * @returns Object with success status and optional error message
- */
 export async function deleteBeadleSlip(slipId: number) {
     try {
         const db = await getDatabase();
         
-        // Verify the slip exists before attempting deletion
-        const existingSlip = db.prepare("SELECT id FROM beedle_slips WHERE id = ?").get(slipId);
+        const existingSlip = db.prepare("SELECT id FROM beadle_slips WHERE id = ?").get(slipId);
         if (!existingSlip) {
             return { success: false, error: "Beadle slip not found" };
         }
         
-        // Delete the beadle slip
-        const result = db.prepare("DELETE FROM beedle_slips WHERE id = ?").run(slipId);
+        const result = db.prepare("DELETE FROM beadle_slips WHERE id = ?").run(slipId);
         
         if (result.changes === 0) {
             return { success: false, error: "Failed to delete beadle slip" };
@@ -401,17 +285,10 @@ export async function deleteBeadleSlip(slipId: number) {
     }
 }
 
-// USER MANAGEMENT FUNCTIONS
-
-/**
- * Migrates existing users to the new roles system
- * @returns Success/error result
- */
 export async function migrateUsersToRoleSystem() {
     try {
         const db = await getDatabase();
         
-        // Get all users with old role system
         const users = db.prepare(`
             SELECT id, role, roles FROM members
         `).all();
@@ -420,42 +297,34 @@ export async function migrateUsersToRoleSystem() {
 
         for (const user of users as any[]) {
             let shouldUpdate = false;
-            let newRoles = ['student']; // Default to student
+            let newRoles = ['student'];
             
-            // If roles column is null or empty, migrate from old role field
             if (!user.roles || user.roles === null || user.roles === '') {
                 shouldUpdate = true;
                 
-                // Map old integer roles to new string roles
                 if (user.role === 0) {
-                    newRoles = ['student']; // Regular student
+                    newRoles = ['student'];
                 } else if (user.role === 1) {
-                    newRoles = ['student', 'beadle']; // Student + beadle
+                    newRoles = ['student', 'beadle'];
                 } else if (user.role === 2) {
-                    newRoles = ['supervisor', 'student']; // Supervisor (also student)
+                    newRoles = ['supervisor', 'student'];
                 } else if (user.role === 3) {
-                    newRoles = ['admin', 'supervisor', 'student']; // Admin with all privileges
+                    newRoles = ['admin', 'supervisor', 'student'];
                 } else {
-                    newRoles = ['student']; // Default fallback
+                    newRoles = ['student'];
                 }
             } else {
-                // Parse existing roles and ensure proper role structure
                 try {
                     const existingRoles = JSON.parse(user.roles);
                     if (Array.isArray(existingRoles) && existingRoles.length > 0) {
-                        // Keep existing roles but ensure they're valid
                         newRoles = existingRoles.filter(role => 
                             ['student', 'beadle', 'supervisor', 'admin', 'super_admin'].includes(role)
                         );
                         
-                        // If no valid roles found, default to student
                         if (newRoles.length === 0) {
                             newRoles = ['student'];
                             shouldUpdate = true;
                         }
-                        
-                        // Don't force student role on admins/supervisors if they don't have it
-                        // This preserves the existing role structure
                     } else {
                         newRoles = ['student'];
                         shouldUpdate = true;
@@ -467,7 +336,6 @@ export async function migrateUsersToRoleSystem() {
             }
 
             if (shouldUpdate) {
-                // Update the user with new roles
                 db.prepare(`
                     UPDATE members 
                     SET roles = ? 
@@ -485,10 +353,6 @@ export async function migrateUsersToRoleSystem() {
     }
 }
 
-/**
- * Debug function to check a specific user's roles
- * @param userEmail - Email of the user to check
- */
 export async function debugUserRoles(userEmail: string) {
     try {
         const db = await getDatabase();
@@ -516,15 +380,10 @@ export async function debugUserRoles(userEmail: string) {
     }
 }
 
-/**
- * Fetches all users from the database for supervisor management
- * @returns Array of user objects with role information
- */
 export async function getAllUsers() {
     try {
         const db = await getDatabase();
         
-        // First, try to migrate users if needed
         await migrateUsersToRoleSystem();
         
         const users = db.prepare(`
@@ -559,23 +418,15 @@ export async function getAllUsers() {
     }
 }
 
-/**
- * Adds a role to a user (tag-based system)
- * @param userId - The ID of the user to update
- * @param roleToAdd - The role to add
- * @returns Success/error result
- */
 export async function addUserRole(userId: string, roleToAdd: string) {
     try {
         const db = await getDatabase();
         
-        // Validate role
         const validRoles = ['student', 'beadle', 'supervisor', 'admin', 'tech_team'];
         if (!validRoles.includes(roleToAdd)) {
             return { success: false, error: "Invalid role specified" };
         }
 
-        // Get current roles
         const user = db.prepare(`SELECT roles FROM members WHERE id = ?`).get(userId) as any;
         if (!user) {
             return { success: false, error: "User not found" };
@@ -583,12 +434,10 @@ export async function addUserRole(userId: string, roleToAdd: string) {
 
         const currentRoles = JSON.parse(user.roles || '["student"]');
         
-        // Add role if not already present
         if (!currentRoles.includes(roleToAdd)) {
             currentRoles.push(roleToAdd);
         }
 
-        // Update user roles
         const result = db.prepare(`
             UPDATE members 
             SET roles = ? 
@@ -606,17 +455,10 @@ export async function addUserRole(userId: string, roleToAdd: string) {
     }
 }
 
-/**
- * Removes a role from a user (tag-based system)
- * @param userId - The ID of the user to update
- * @param roleToRemove - The role to remove
- * @returns Success/error result
- */
 export async function removeUserRole(userId: string, roleToRemove: string) {
     try {
         const db = await getDatabase();
         
-        // Get current roles
         const user = db.prepare(`SELECT roles FROM members WHERE id = ?`).get(userId) as any;
         if (!user) {
             return { success: false, error: "User not found" };
@@ -624,13 +466,11 @@ export async function removeUserRole(userId: string, roleToRemove: string) {
 
         const currentRoles = JSON.parse(user.roles || '["student"]');
         
-        // Remove role if present, but keep at least 'student'
         const updatedRoles = currentRoles.filter((role: string) => role !== roleToRemove);
         if (updatedRoles.length === 0) {
-            updatedRoles.push('student'); // Ensure user always has at least student role
+            updatedRoles.push('student');
         }
 
-        // Update user roles
         const result = db.prepare(`
             UPDATE members 
             SET roles = ? 
@@ -648,17 +488,10 @@ export async function removeUserRole(userId: string, roleToRemove: string) {
     }
 }
 
-/**
- * Sets user roles (replaces all current roles)
- * @param userId - The ID of the user to update
- * @param newRoles - Array of roles to set
- * @returns Success/error result
- */
 export async function setUserRoles(userId: string, newRoles: string[]) {
     try {
         const db = await getDatabase();
         
-        // Validate roles
         const validRoles = ['student', 'beadle', 'supervisor', 'admin', 'tech_team'];
         for (const role of newRoles) {
             if (!validRoles.includes(role)) {
@@ -666,12 +499,10 @@ export async function setUserRoles(userId: string, newRoles: string[]) {
             }
         }
 
-        // Ensure user always has at least one role
         if (newRoles.length === 0) {
-            newRoles = ['student']; // Default to student if no roles specified
+            newRoles = ['student'];
         }
 
-        // Update user roles
         const result = db.prepare(`
             UPDATE members 
             SET roles = ? 
@@ -689,25 +520,14 @@ export async function setUserRoles(userId: string, newRoles: string[]) {
     }
 }
 
-/**
- * Legacy function for backward compatibility
- * @deprecated Use addUserRole or removeUserRole instead
- */
 export async function updateUserRole(userId: string, newRole: string) {
-    // For backward compatibility, this adds the role if it's not student
     if (newRole === 'student') {
-        return removeUserRole(userId, 'beadle'); // Remove beadle role, keeping student
+        return removeUserRole(userId, 'beadle');
     } else {
-        return addUserRole(userId, newRole); // Add the new role
+        return addUserRole(userId, newRole);
     }
 }
 
-/**
- * Updates a user's form class assignment
- * @param userId - The ID of the user to update
- * @param formClass - The form class to assign
- * @returns Success/error result
- */
 export async function updateUserFormClass(userId: string, formClass: string) {
     try {
         const db = await getDatabase();
@@ -729,11 +549,6 @@ export async function updateUserFormClass(userId: string, formClass: string) {
     }
 }
 
-/**
- * Creates a new user account
- * @param userData - User data including email, name, role, etc.
- * @returns Success/error result with user ID
- */
 export async function createUser(userData: {
     email: string;
     full_name: string;
@@ -744,17 +559,14 @@ export async function createUser(userData: {
     try {
         const db = await getDatabase();
         
-        // Check if email already exists
         const existing = db.prepare("SELECT id FROM members WHERE email = ?").get(userData.email);
         if (existing) {
             return { success: false, error: "Email already exists" };
         }
 
-        // Generate default password if not provided
         const defaultPassword = userData.password || 'CampionStudent2024';
         const passwordHash = await bcrypt.hash(defaultPassword, SALT_ROUNDS);
 
-        // Insert new user
         const result = db.prepare(`
             INSERT INTO members (email, password, full_name, form_class, role, created_at)
             VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
@@ -777,11 +589,6 @@ export async function createUser(userData: {
     }
 }
 
-/**
- * Bulk update user roles
- * @param updates - Array of {userId, newRole} objects
- * @returns Success/error result with update count
- */
 export async function bulkUpdateUserRoles(updates: Array<{userId: string, newRole: string}>) {
     try {
         const db = await getDatabase();
@@ -824,16 +631,6 @@ export async function bulkUpdateUserRoles(updates: Array<{userId: string, newRol
     }
 }
 
-/**
- * Update User Profile Function
- * 
- * Updates user profile information including name, email, form class, and optionally password.
- * Validates current password if password change is requested.
- * 
- * @param userId - ID of the user to update
- * @param updateData - Object containing profile updates
- * @returns Object with success status and error message if applicable
- */
 export async function updateUserProfile(userId: number, updateData: {
     full_name?: string;
     email?: string;
@@ -842,9 +639,6 @@ export async function updateUserProfile(userId: number, updateData: {
     newPassword?: string;
 }) {
     try {
-        // console.log("updateUserProfile called with:", { userId, updateData });
-        
-        // Validate inputs
         if (!userId || typeof userId !== 'number') {
             return { success: false, error: "Invalid user ID" };
         }
@@ -855,7 +649,6 @@ export async function updateUserProfile(userId: number, updateData: {
         
         const db = await getDatabase();
         
-        // If password change is requested, verify current password first
         if (updateData.newPassword && updateData.currentPassword) {
             const user = db.prepare("SELECT password FROM members WHERE id = ?").get(userId) as any;
             if (!user) {
@@ -868,7 +661,6 @@ export async function updateUserProfile(userId: number, updateData: {
             }
         }
         
-        // Check if email is already taken by another user
         if (updateData.email) {
             const existingUser = db.prepare("SELECT id FROM members WHERE email = ? AND id != ?").get(updateData.email, userId);
             if (existingUser) {
@@ -876,7 +668,6 @@ export async function updateUserProfile(userId: number, updateData: {
             }
         }
         
-        // Build update query dynamically
         const updateFields: string[] = [];
         const updateValues: any[] = [];
         
@@ -901,7 +692,6 @@ export async function updateUserProfile(userId: number, updateData: {
             updateValues.push(hashedPassword);
         }
         
-        // Check if updated_at column exists and add it if it does
         try {
             const tableInfo = db.prepare("PRAGMA table_info(members)").all() as any[];
             const hasUpdatedAt = tableInfo.some((column: any) => column.name === 'updated_at');
@@ -918,13 +708,9 @@ export async function updateUserProfile(userId: number, updateData: {
             return { success: false, error: "No fields to update" };
         }
         
-        // Execute update - add userId at the end for WHERE clause
         const query = `UPDATE members SET ${updateFields.join(", ")} WHERE id = ?`;
-        // console.log("Executing query:", query);
-        // console.log("With values:", [...updateValues, userId]);
         
         const result = db.prepare(query).run(...updateValues, userId);
-        // console.log("Query result:", result);
         
         if (result.changes === 0) {
             return { success: false, error: "User not found or no changes made" };
@@ -941,16 +727,6 @@ export async function updateUserProfile(userId: number, updateData: {
     }
 }
 
-// ===== TASK MANAGEMENT FUNCTIONS =====
-
-/**
- * Fetch Tasks Function
- * 
- * Retrieves tasks from the database with user information
- * 
- * @param userId - Optional user ID to filter tasks
- * @returns Array of tasks with user details
- */
 export async function fetchTasks(userId?: number) {
     try {
         const db = await getDatabase();
@@ -977,14 +753,6 @@ export async function fetchTasks(userId?: number) {
     }
 }
 
-/**
- * Create Task Function
- * 
- * Creates a new task in the database
- * 
- * @param taskData - Task information
- * @returns Success status and task ID
- */
 export async function createTask(taskData: {
     title: string;
     description?: string;
@@ -1015,15 +783,6 @@ export async function createTask(taskData: {
     }
 }
 
-/**
- * Update Task Status Function
- * 
- * Updates the status of a task
- * 
- * @param taskId - Task ID to update
- * @param status - New status
- * @returns Success status
- */
 export async function updateTaskStatus(taskId: number, status: string) {
     try {
         const db = await getDatabase();
@@ -1041,16 +800,6 @@ export async function updateTaskStatus(taskId: number, status: string) {
     }
 }
 
-// ===== EVENT MANAGEMENT FUNCTIONS =====
-
-/**
- * Fetch Events Function
- * 
- * Retrieves events from the database
- * 
- * @param limit - Optional limit for number of events
- * @returns Array of events
- */
 export async function fetchEvents(limit?: number) {
     try {
         const db = await getDatabase();
@@ -1076,14 +825,6 @@ export async function fetchEvents(limit?: number) {
     }
 }
 
-/**
- * Create Event Function
- * 
- * Creates a new event in the database
- * 
- * @param eventData - Event information
- * @returns Success status and event ID
- */
 export async function createEvent(eventData: {
     title: string;
     description?: string;
@@ -1118,17 +859,6 @@ export async function createEvent(eventData: {
     }
 }
 
-// ===== MESSAGE MANAGEMENT FUNCTIONS =====
-
-/**
- * Fetch Messages Function
- * 
- * Retrieves messages for a user
- * 
- * @param userId - User ID to fetch messages for
- * @param limit - Optional limit for number of messages
- * @returns Array of messages
- */
 export async function fetchMessages(userId: number, limit?: number) {
     try {
         const db = await getDatabase();
@@ -1155,14 +885,6 @@ export async function fetchMessages(userId: number, limit?: number) {
     }
 }
 
-/**
- * Create Message Function
- * 
- * Creates a new message
- * 
- * @param messageData - Message information
- * @returns Success status and message ID
- */
 export async function createMessage(messageData: {
     sender_id: number;
     recipient_id?: number;
@@ -1191,34 +913,22 @@ export async function createMessage(messageData: {
     }
 }
 
-/**
- * Get Dashboard Stats Function
- * 
- * Retrieves statistics for the dashboard
- * 
- * @param userId - User ID for personalized stats
- * @returns Object with various statistics
- */
 export async function getDashboardStats(userId: number) {
     try {
         const db = await getDatabase();
         
-        // Get announcement count
         const announcementCount = db.prepare("SELECT COUNT(*) as count FROM announcements").get() as any;
         
-        // Get task count for user
         const taskCount = db.prepare(`
             SELECT COUNT(*) as count FROM tasks 
             WHERE assigned_to = ? AND status != 'completed'
         `).get(userId) as any;
         
-        // Get upcoming events count
         const eventCount = db.prepare(`
             SELECT COUNT(*) as count FROM events 
             WHERE event_date >= date('now') AND status = 'upcoming'
         `).get() as any;
         
-        // Get unread messages count
         const messageCount = db.prepare(`
             SELECT COUNT(*) as count FROM messages 
             WHERE (recipient_id = ? OR recipient_id IS NULL) AND is_read = FALSE

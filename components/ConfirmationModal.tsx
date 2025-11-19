@@ -1,48 +1,15 @@
-/**
- * Confirmation Modal Component
- * 
- * A reusable modal dialog for confirming user actions, particularly
- * destructive operations like deleting data or clearing forms.
- * Provides a consistent UI for confirmation workflows throughout
- * the application.
- * 
- * Features:
- * - Customizable title, message, and button text
- * - Support for danger and primary button variants
- * - Keyboard accessibility (ESC to cancel)
- * - Click outside to cancel functionality
- * - Body scroll prevention when open
- * - Smooth animations and transitions
- * - Responsive design
- * 
- * Usage:
- * - Typically used with useConfirmation hook
- * - Displays over page content with backdrop
- * - Returns boolean result via callback functions
- * 
- * @author Tech Media Hub Team
- * @version 1.0
- * @since 2024
- */
-
 "use client";
 import { useEffect } from 'react';
 
-/**
- * ConfirmationModalProps Interface
- * 
- * Defines the props for the confirmation modal component.
- * Allows full customization of modal content and behavior.
- */
 interface ConfirmationModalProps {
-  isOpen: boolean;                          // Controls modal visibility
-  title: string;                            // Modal header title
-  message: string;                          // Main confirmation message
-  confirmText?: string;                     // Custom confirm button text (default: "Confirm")
-  cancelText?: string;                      // Custom cancel button text (default: "Cancel")
-  confirmVariant?: 'danger' | 'primary';   // Button styling variant
-  onConfirm: () => void;                    // Callback when user confirms
-  onCancel: () => void;                     // Callback when user cancels
+  isOpen: boolean;
+  title: string;
+  message: string;
+  confirmText?: string;
+  cancelText?: string;
+  confirmVariant?: 'danger' | 'primary';
+  onConfirm: () => void;
+  onCancel: () => void;
 }
 
 export function ConfirmationModal({
@@ -85,7 +52,6 @@ export function ConfirmationModal({
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-xl max-w-md w-full shadow-2xl transform transition-all">
-        {/* Header */}
         <div className="px-6 py-4 border-b border-gray-200">
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
@@ -100,12 +66,10 @@ export function ConfirmationModal({
           </div>
         </div>
 
-        {/* Body */}
         <div className="px-6 py-4">
           <p className="text-gray-600 leading-relaxed">{message}</p>
         </div>
 
-        {/* Footer */}
         <div className="px-6 py-4 border-t border-gray-200 flex justify-end space-x-3">
           <button
             onClick={onCancel}

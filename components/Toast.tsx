@@ -1,56 +1,18 @@
-/**
- * Toast Notification Component
- * 
- * Provides a flexible toast notification system for displaying temporary
- * messages to users. Supports multiple types (success, error, warning, info)
- * with appropriate styling, icons, and animations.
- * 
- * Features:
- * - Multiple toast types with distinct visual styling
- * - Smooth entrance and exit animations
- * - Auto-dismiss with configurable duration
- * - Manual dismiss with close button
- * - Fixed positioning in top-right corner
- * - Responsive design and accessibility
- * - Campion College brand colors for info toasts
- * 
- * Usage:
- * - Used with useToast hook for state management
- * - Displays in ToastContainer for proper positioning
- * - Automatically removes after specified duration
- * 
- * @author Tech Media Hub Team
- * @version 1.0
- * @since 2024
- */
-
 "use client";
 import { useEffect, useState } from 'react';
 
-/**
- * Toast Type Definition
- * Defines the available toast notification types with distinct styling
- */
 export type ToastType = 'success' | 'error' | 'warning' | 'info';
 
-/**
- * Toast Interface
- * Defines the structure of a toast notification object
- */
 export interface Toast {
-  id: string;        // Unique identifier for the toast
-  message: string;   // Text content to display
-  type: ToastType;   // Visual type (affects styling and icon)
-  duration?: number; // Auto-dismiss duration in milliseconds (default: 4000)
+  id: string;
+  message: string;
+  type: ToastType;
+  duration?: number;
 }
 
-/**
- * ToastProps Interface
- * Props for individual toast item component
- */
 interface ToastProps {
-  toast: Toast;                    // Toast data to display
-  onRemove: (id: string) => void;  // Callback to remove toast
+  toast: Toast;
+  onRemove: (id: string) => void;
 }
 
 function ToastItem({ toast, onRemove }: ToastProps) {
@@ -58,10 +20,8 @@ function ToastItem({ toast, onRemove }: ToastProps) {
   const [isExiting, setIsExiting] = useState(false);
 
   useEffect(() => {
-    // Trigger entrance animation
     setTimeout(() => setIsVisible(true), 10);
 
-    // Auto-remove after duration
     const timer = setTimeout(() => {
       setIsExiting(true);
       setTimeout(() => onRemove(toast.id), 300);

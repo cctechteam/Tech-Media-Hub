@@ -6,7 +6,9 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "migrate:roles": "tsx scripts/migrate-roles.ts",
+    "update:users": "tsx scripts/update-existing-users.ts"
   },
   "dependencies": {
     "@supabase/auth-helpers-nextjs": "^0.10.0",
@@ -32,6 +34,7 @@
     "better-sqlite3": "^12.2.0",
     "flyonui": "^2.4.0",
     "tailwindcss": "^4",
+    "tsx": "^4.20.6",
     "typescript": "^5"
   }
 }
