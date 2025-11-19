@@ -1,69 +1,39 @@
-/**
- * Email Reports Page - Admin Interface for Daily Supervisor Reports
- * 
- * This page provides an administrative interface for generating and viewing
- * daily supervisor reports based on beadle slip attendance data. It allows
- * administrators to:
- * - Generate reports for a specific date
- * - Run scheduled daily reports for today
- * - Preview generated email content
- * - Copy email content to clipboard for manual distribution
- * 
- * The system generates reports for all 6 form levels (1st-5th Form, 6A, 6B)
- * and handles cases where no submissions exist for a particular form.
- * 
- * @author Tech Media Hub Team
- * @version 1.0
- * @since 2024
- */
-
 "use client";
 import { useState, useEffect } from "react";
-import Navbar from "@/components/navbar";
-import Footer from "@/components/footer";
 import Image from "next/image";
-import { generateAllSupervisorReports, getTodayDate, scheduledDailyReports } from "@/lib/emailUtils";
 
-/**
- * EmailReportsPage Component
- * 
- * Main component for the email reports administration interface.
- * Manages state for date selection, report generation, and display of results.
- */
 export default function EmailReportsPage() {
-  // State Management
-  const [mounted, setMounted] = useState(false); // Tracks if component has mounted (prevents hydration issues)
-  const [selectedDate, setSelectedDate] = useState(getTodayDate()); // Selected date for report generation
-  const [generatedReports, setGeneratedReports] = useState<{ [formLevel: string]: string }>({}); // Generated HTML email content by form level
-  const [loading, setLoading] = useState(false); // Loading state during report generation
-  const [showReports, setShowReports] = useState(false); // Controls visibility of generated reports section
+  const [selectedDate, setSelectedDate] = useState('2024-01-01'); 
+  const [generatedReports, setGeneratedReports] = useState<{ [formLevel: string]: any }>({}); 
+  const [loading, setLoading] = useState(false); 
+  const [showReports, setShowReports] = useState(false); 
+  
 
-  /**
-   * Effect to handle component mounting
-   * Prevents hydration mismatches by ensuring client-side rendering
-   */
   useEffect(() => {
-    setMounted(true);
+    const date = new Date();
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    setSelectedDate(`${year}-${month}-${day}`);
   }, []);
 
-  /**
-   * Handles generation of reports for a specific date
-   * 
-   * This function:
-   * 1. Sets loading state to show user feedback
-   * 2. Calls the email utility to generate reports for all form levels
-   * 3. Updates state with generated reports and shows results
-   * 4. Handles errors gracefully with user feedback
-   * 
-   * @async
-   */
   const handleGenerateReports = async () => {
     setLoading(true);
     try {
       console.log(`Generating reports for date: ${selectedDate}`);
-      const reports = await generateAllSupervisorReports(selectedDate);
-      console.log(`Generated reports:`, reports);
-      setGeneratedReports(reports);
+      const response = await fetch('/api/email-reports', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'generate', date: selectedDate })
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to generate reports');
+      }
+      
+      const data = await response.json();
+      console.log(`Generated reports:`, data.reports);
+      setGeneratedReports(data.reports);
       setShowReports(true);
     } catch (error) {
       console.error('Error generating reports:', error);
@@ -73,20 +43,22 @@ export default function EmailReportsPage() {
     }
   };
 
-  /**
-   * Handles running of scheduled daily reports for today's date
-   * 
-   * This is equivalent to the automated daily report generation that
-   * would normally run at 3:30 PM. It generates reports for today's date
-   * across all form levels.
-   * 
-   * @async
-   */
+
   const handleRunScheduledReports = async () => {
     setLoading(true);
     try {
-      const reports = await scheduledDailyReports();
-      setGeneratedReports(reports);
+      const response = await fetch('/api/email-reports', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'scheduled' })
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to run scheduled reports');
+      }
+      
+      const data = await response.json();
+      setGeneratedReports(data.reports);
       setShowReports(true);
     } catch (error) {
       console.error('Error running scheduled reports:', error);
@@ -96,40 +68,22 @@ export default function EmailReportsPage() {
     }
   };
 
-  /**
-   * Copies email content to the system clipboard
-   * 
-   * This allows administrators to manually copy and paste email content
-   * into their email client for distribution to supervisors.
-   * 
-   * @param content - The HTML email content to copy
-   */
-  const copyToClipboard = (content: string) => {
-    navigator.clipboard.writeText(content);
+  const copyToClipboard = (report: any) => {
+    const emailText = `To: ${report.supervisorEmail}\nSubject: Daily Beadle Report - ${report.formLevel} - ${new Date(selectedDate).toLocaleDateString('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    })}\n\n${report.htmlContent}`;
+    navigator.clipboard.writeText(emailText);
     alert('Email content copied to clipboard!');
   };
 
-  // Render loading state while component mounts to prevent hydration issues
-  if (!mounted) {
-    return (
-      <main className="min-h-screen bg-gradient-to-br from-red-50 via-white to-blue-50">
-        <Navbar />
-        <div className="flex justify-center items-center min-h-[50vh]">
-          <div className="text-xl text-gray-600">Loading email reports...</div>
-        </div>
-        <Footer />
-      </main>
-    );
-  }
-
   return (
     <main className="min-h-screen bg-gradient-to-br from-red-50 via-white to-blue-50">
-      <Navbar />
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header Section */}
         <div className="text-center mb-12">
-          {/* Campion College Logo */}
           <div className="flex justify-center mb-6">
             <Image
               src="/images/Campion_Logo.png"
@@ -150,7 +104,6 @@ export default function EmailReportsPage() {
           </div>
         </div>
 
-        {/* Info Banner */}
         <div className="mb-8 bg-red-50 border border-red-200 rounded-xl p-6">
           <div className="flex items-start space-x-3">
             <div className="flex-shrink-0">
@@ -168,7 +121,6 @@ export default function EmailReportsPage() {
           </div>
         </div>
 
-        {/* Controls Section */}
         <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-8 mb-8">
           <div className="flex flex-col lg:flex-row gap-6 items-center justify-between">
             <div className="flex items-center space-x-4">
@@ -248,12 +200,11 @@ export default function EmailReportsPage() {
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-              <span>Automatically scheduled for 3:30 PM daily</span>
+              <span>Automatically scheduled for 4:00 PM daily</span>
             </div>
           </div>
         </div>
 
-        {/* Generated Reports */}
         {showReports && (
           <div className="space-y-8">
             <div className="text-center bg-white rounded-2xl shadow-lg p-8">
@@ -295,8 +246,8 @@ export default function EmailReportsPage() {
               </div>
             ) : (
               <div className="grid gap-6">
-                {Object.entries(generatedReports).map(([formLevel, emailContent]) => {
-                  const hasData = !emailContent.includes('NO SUBMISSIONS');
+                {Object.entries(generatedReports).map(([formLevel, report]) => {
+                  const hasData = report.hasData;
                   return (
                     <div key={formLevel} className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
                       <div className="bg-gradient-to-r from-gray-50 to-gray-100 px-6 py-4 border-b border-gray-200">
@@ -313,7 +264,7 @@ export default function EmailReportsPage() {
                             </span>
                           </div>
                           <button
-                            onClick={() => copyToClipboard(emailContent)}
+                            onClick={() => copyToClipboard(report)}
                             className="inline-flex items-center space-x-2 px-4 py-2 text-white font-semibold rounded-lg transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
                             style={{backgroundColor: '#B91C47'}}
                             onMouseEnter={(e) => (e.target as HTMLElement).style.backgroundColor = '#A01B3F'}
@@ -335,7 +286,7 @@ export default function EmailReportsPage() {
                               onClick={() => {
                                 const previewWindow = window.open('', '_blank');
                                 if (previewWindow) {
-                                  previewWindow.document.write(emailContent);
+                                  previewWindow.document.write(report.htmlContent);
                                   previewWindow.document.close();
                                 }
                               }}
@@ -346,7 +297,7 @@ export default function EmailReportsPage() {
                           </div>
                           <div className="max-h-96 overflow-y-auto">
                             <iframe
-                              srcDoc={emailContent}
+                              srcDoc={report.htmlContent}
                               className="w-full min-h-[400px] border-0"
                               title={`Email preview for ${formLevel}`}
                               sandbox="allow-same-origin"
@@ -360,7 +311,13 @@ export default function EmailReportsPage() {
                             <div className="flex items-center space-x-2">
                               <span className="font-medium">To:</span>
                               <span className="font-mono bg-blue-100 px-2 py-1 rounded">
-                                {formLevel.toLowerCase().replace(' ', '')}supervisor@campioncollege.com
+                                {report.supervisorEmail}
+                              </span>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <span className="font-medium">Supervisor:</span>
+                              <span className="bg-blue-100 px-2 py-1 rounded">
+                                {report.supervisorName}
                               </span>
                             </div>
                             <div className="flex items-center space-x-2">
@@ -391,8 +348,6 @@ export default function EmailReportsPage() {
           </div>
         )}
       </div>
-      
-      <Footer />
     </main>
   );
 }
