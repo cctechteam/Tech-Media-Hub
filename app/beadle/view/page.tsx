@@ -1,6 +1,4 @@
 "use client";
-import Footer from "@/components/footer";
-import Navbar from "@/components/navbar";
 import { getBeadleSlips, deleteBeadleSlip, fetchCurrentUser } from "@/lib/serverUtils";
 import { retrieveSessionToken } from "@/lib/utils";
 import { ConfirmationModal } from '@/components/ConfirmationModal';
@@ -13,7 +11,7 @@ import Image from 'next/image';
 
 type BeadleSlip = {
   id: number;
-  beedle_email: string;
+  beadle_email: string;
   grade_level: string;
   class_name: string;
   class_start_time: string;
@@ -35,7 +33,7 @@ type BeadleSlip = {
 type SortField = 'date' | 'teacher' | 'subject' | 'class_name' | 'students_present' | 'created_at';
 type SortDirection = 'asc' | 'desc';
 
-function BeedleDashboardContent() {
+function BeadleDashboardContent() {
   const { toasts, success, error, removeToast } = useToast();
   const { isOpen, options, confirm, handleConfirm, handleCancel } = useConfirmation();
   const [slips, setSlips] = useState<BeadleSlip[]>([]);
@@ -82,7 +80,7 @@ function BeedleDashboardContent() {
   const handleDeleteSlip = async (slip: BeadleSlip) => {
     const confirmed = await confirm({
       title: "Delete Beadle Slip",
-      message: `Are you sure you want to delete this beadle slip report?\n\nClass: ${slip.class_name} - ${slip.subject}\nTeacher: ${slip.teacher}\nDate: ${formatDate(slip.date)}\nBeadle: ${slip.beedle_email.split('@')[0]}\n\nThis action cannot be undone.`,
+      message: `Are you sure you want to delete this beadle slip report?\n\nClass: ${slip.class_name} - ${slip.subject}\nTeacher: ${slip.teacher}\nDate: ${formatDate(slip.date)}\nBeadle: ${slip.beadle_email.split('@')[0]}\n\nThis action cannot be undone.`,
       confirmText: "Delete Report",
       cancelText: "Cancel",
       confirmVariant: "danger"
@@ -93,9 +91,7 @@ function BeedleDashboardContent() {
         const result = await deleteBeadleSlip(slip.id);
         if (result.success) {
           success("Beadle slip deleted successfully!");
-          // Remove the deleted slip from the local state
           setSlips(prevSlips => prevSlips.filter(s => s.id !== slip.id));
-          // Close the modal if this slip was selected
           if (selectedSlip?.id === slip.id) {
             setSelectedSlip(null);
           }
@@ -109,7 +105,6 @@ function BeedleDashboardContent() {
     }
   };
 
-  // Check if current user is admin or super admin
   const isAdmin = currentUser?.role === 2 || (currentUser?.roles && (currentUser.roles.includes('admin') || currentUser.roles.includes('super_admin')));
 
   const filteredSlips = slips.filter(slip => {
@@ -117,7 +112,7 @@ function BeedleDashboardContent() {
       slip.teacher.toLowerCase().includes(searchTerm.toLowerCase()) ||
       slip.subject.toLowerCase().includes(searchTerm.toLowerCase()) ||
       slip.class_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      slip.beedle_email.toLowerCase().includes(searchTerm.toLowerCase());
+      slip.beadle_email.toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesDate = filterDate === "" || slip.date === filterDate;
     const matchesGrade = filterGrade === "" || slip.grade_level === filterGrade;
@@ -127,7 +122,6 @@ function BeedleDashboardContent() {
     return matchesSearch && matchesDate && matchesGrade && matchesTeacher && matchesSubject;
   });
 
-  // Group slips by form for supervisor view
   const groupedSlips = filteredSlips.reduce((groups, slip) => {
     const form = slip.grade_level;
     if (!groups[form]) {
@@ -137,7 +131,6 @@ function BeedleDashboardContent() {
     return groups;
   }, {} as Record<string, BeadleSlip[]>);
 
-  // Calculate supervisor-focused statistics
   const supervisorStats = {
     totalForms: Object.keys(groupedSlips).length,
     totalSlips: filteredSlips.length,
@@ -151,7 +144,6 @@ function BeedleDashboardContent() {
 
   const formatTime = (time: string) => {
     if (!time) return "N/A";
-    // Use a more consistent format to avoid hydration issues
     const [hours, minutes] = time.split(':');
     const hour = parseInt(hours);
     const ampm = hour >= 12 ? 'PM' : 'AM';
@@ -160,7 +152,6 @@ function BeedleDashboardContent() {
   };
 
   const formatDate = (dateString: string) => {
-    // Use a consistent date format to avoid hydration issues
     const date = new Date(dateString);
     return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
   };
@@ -168,23 +159,19 @@ function BeedleDashboardContent() {
   if (loading) {
     return (
       <main className="min-h-screen text-gray-800 bg-gradient-to-br from-red-50 via-white to-indigo-50">
-        <Navbar />
         <div className="flex justify-center items-center min-h-[50vh]">
           <div className="text-xl text-gray-600">Loading beadle slips...</div>
         </div>
-        <Footer />
       </main>
     );
   }
 
   return (
     <main className="min-h-screen text-gray-800 bg-gradient-to-br from-red-50 via-white to-indigo-50">
-      <Navbar />
       
       <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="bg-white bg-opacity-95 backdrop-blur-sm rounded-lg shadow-lg border border-blue-100 p-8">
           <div className="text-center mb-8">
-            {/* Campion College Logo */}
             <div className="flex justify-center mb-2">
               <Image
                 src="/images/Campion_Logo.png"
@@ -207,7 +194,6 @@ function BeedleDashboardContent() {
             )}
           </div>
 
-          {/* Supervisor Controls */}
           <div className="mb-6 space-y-4">
             <div className="flex flex-col lg:flex-row gap-4">
               <div className="flex-1">
@@ -262,7 +248,7 @@ function BeedleDashboardContent() {
                 {slips.length === 0 ? "No beadle slips submitted yet." : "No slips match your search criteria."}
               </div>
               <a
-                href="/beedle"
+                href="/beadle"
                 className="inline-block px-6 py-3 text-white font-semibold rounded-lg transition-colors" style={{backgroundColor: '#B91C47'}} onMouseEnter={(e) => (e.target as HTMLElement).style.backgroundColor = '#A01B3F'} onMouseLeave={(e) => (e.target as HTMLElement).style.backgroundColor = '#B91C47'}
               >
                 Submit New Beadle Slip
@@ -270,7 +256,6 @@ function BeedleDashboardContent() {
             </div>
           ) : (
             <>
-              {/* Supervisor Statistics */}
               <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-6">
                 <div className="bg-red-50 p-4 rounded-lg border border-red-200">
                   <div className="text-2xl font-bold" style={{color: '#B91C47'}}>{supervisorStats.totalForms}</div>
@@ -290,7 +275,6 @@ function BeedleDashboardContent() {
                 </div>
               </div>
 
-              {/* Form-by-Form Breakdown */}
               <div className="space-y-6">
                 {Object.entries(groupedSlips).map(([form, formSlips]) => (
                   <div key={form} className="bg-gray-50 p-6 rounded-lg border border-gray-200">
@@ -306,7 +290,6 @@ function BeedleDashboardContent() {
                       </div>
                     </div>
 
-                    {/* Form-specific table */}
                     <div className="overflow-x-auto">
                       <table className="w-full border-collapse border border-gray-300">
                         <thead>
@@ -362,7 +345,7 @@ function BeedleDashboardContent() {
                                   </span>
                                 </div>
                               </td>
-                              <td className="border border-gray-300 px-3 py-2 text-sm">{slip.beedle_email.split('@')[0]}</td>
+                              <td className="border border-gray-300 px-3 py-2 text-sm">{slip.beadle_email.split('@')[0]}</td>
                               <td className="border border-gray-300 px-3 py-2 text-sm">
                                 <div className="flex items-center gap-2">
                                   <button
@@ -404,11 +387,9 @@ function BeedleDashboardContent() {
         </div>
       </div>
 
-      {/* Detail Modal */}
       {selectedSlip && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-xl max-w-4xl w-full max-h-[90vh] overflow-hidden shadow-2xl">
-            {/* Header */}
             <div className="text-white px-6 py-4" style={{backgroundColor: '#B91C47'}}>
               <div className="flex justify-between items-center">
                 <div className="flex items-center">
@@ -438,7 +419,6 @@ function BeedleDashboardContent() {
             </div>
 
             <div className="p-6 bg-gray-100 overflow-y-auto max-h-[calc(90vh-80px)]">
-              {/* Priority Alert Banner */}
               {(selectedSlip.teacher_present === 'no' || selectedSlip.absent_students.length > 5 || selectedSlip.late_students.length > 3) && (
                 <div className="mb-4 bg-red-100 border border-red-300 rounded-lg p-3">
                   <div className="flex items-center">
@@ -465,10 +445,8 @@ function BeedleDashboardContent() {
                 </div>
               )}
 
-              {/* Two Column Layout */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
-                
-                {/* Class Information */}
+
                 <div className="bg-white border border-gray-200 rounded-lg p-4">
                   <div className="flex items-center mb-3">
                     <div className="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center mr-2">
@@ -520,7 +498,6 @@ function BeedleDashboardContent() {
                   </div>
                 </div>
 
-                {/* Attendance Summary */}
                 <div className="bg-white border border-gray-200 rounded-lg p-4">
                   <div className="flex items-center mb-3">
                     <div className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center mr-2">
@@ -553,10 +530,8 @@ function BeedleDashboardContent() {
                 </div>
               </div>
 
-              {/* Student Lists */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
-                
-                {/* Absent Students */}
+
                 {selectedSlip.absent_students.length > 0 ? (
                   <div className="bg-red-50 border border-red-200 rounded-lg p-4">
                     <div className="flex items-center mb-3">
@@ -591,7 +566,6 @@ function BeedleDashboardContent() {
                   </div>
                 )}
 
-                {/* Late Students */}
                 {selectedSlip.late_students.length > 0 && (
                   <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
                     <div className="flex items-center mb-3">
@@ -613,7 +587,6 @@ function BeedleDashboardContent() {
                 )}
               </div>
 
-              {/* Additional Information */}
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
                 <div className="flex items-center mb-3">
                   <div className="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center mr-2">
@@ -628,7 +601,7 @@ function BeedleDashboardContent() {
                     <span className="text-blue-700">Homework Given: {selectedSlip.homework_given}</span>
                   </div>
                   <div>
-                    <span className="text-blue-700">Beadle: {selectedSlip.beedle_email.split('@')[0]}</span>
+                    <span className="text-blue-700">Beadle: {selectedSlip.beadle_email.split('@')[0]}</span>
                   </div>
                   <div className="col-span-1 md:col-span-2">
                     <span className="text-blue-700">Submitted: {new Date(selectedSlip.created_at).toLocaleString()}</span>
@@ -636,12 +609,11 @@ function BeedleDashboardContent() {
                 </div>
               </div>
 
-              {/* Action Buttons */}
               <div className="flex justify-between items-center">
                 <div className="flex space-x-3">
                   <button
                     onClick={() => {
-                      const content = `Beadle Slip Report - ${selectedSlip.class_name}\n\nDate: ${formatDate(selectedSlip.date)}\nTeacher: ${selectedSlip.teacher}\nTime: ${formatTime(selectedSlip.class_start_time)} - ${formatTime(selectedSlip.class_end_time)}${selectedSlip.is_double_session ? ' (Double Session)' : ''}\nForm: ${selectedSlip.grade_level}\n\nAttendance:\n- Present: ${selectedSlip.students_present}\n- Absent: ${selectedSlip.absent_students.length}\n- Late: ${selectedSlip.late_students.length}\n\nAbsent Students:\n${selectedSlip.absent_students.map(s => `- ${s}`).join('\n')}\n\nLate Students:\n${selectedSlip.late_students.map(s => `- ${s}`).join('\n')}\n\nAdditional Info:\n- Session Type: ${selectedSlip.is_double_session ? 'Double Session (70 minutes)' : 'Single Session (35 minutes)'}\n- Homework Given: ${selectedSlip.homework_given}\n- Beadle: ${selectedSlip.beedle_email.split('@')[0]}\n- Submitted: ${new Date(selectedSlip.created_at).toLocaleString()}`;
+                      const content = `Beadle Slip Report - ${selectedSlip.class_name}\n\nDate: ${formatDate(selectedSlip.date)}\nTeacher: ${selectedSlip.teacher}\nTime: ${formatTime(selectedSlip.class_start_time)} - ${formatTime(selectedSlip.class_end_time)}${selectedSlip.is_double_session ? ' (Double Session)' : ''}\nForm: ${selectedSlip.grade_level}\n\nAttendance:\n- Present: ${selectedSlip.students_present}\n- Absent: ${selectedSlip.absent_students.length}\n- Late: ${selectedSlip.late_students.length}\n\nAbsent Students:\n${selectedSlip.absent_students.map(s => `- ${s}`).join('\n')}\n\nLate Students:\n${selectedSlip.late_students.map(s => `- ${s}`).join('\n')}\n\nAdditional Info:\n- Session Type: ${selectedSlip.is_double_session ? 'Double Session (70 minutes)' : 'Single Session (35 minutes)'}\n- Homework Given: ${selectedSlip.homework_given}\n- Beadle: ${selectedSlip.beadle_email.split('@')[0]}\n- Submitted: ${new Date(selectedSlip.created_at).toLocaleString()}`;
                       navigator.clipboard.writeText(content);
                       success('Report copied to clipboard!');
                     }}
@@ -704,13 +676,9 @@ function BeedleDashboardContent() {
           </div>
         </div>
       )}
-
-      <Footer />
       
-      {/* Toast Notifications */}
       <ToastContainer toasts={toasts} onRemove={removeToast} />
       
-      {/* Confirmation Modal */}
       <ConfirmationModal
         isOpen={isOpen}
         title={options.title}
@@ -725,20 +693,17 @@ function BeedleDashboardContent() {
   );
 }
 
-// Dynamic import with no SSR to prevent hydration issues
-const DynamicBeedleDashboard = dynamic(() => Promise.resolve(BeedleDashboardContent), {
+const DynamicBeadleDashboard = dynamic(() => Promise.resolve(BeadleDashboardContent), {
   ssr: false,
   loading: () => (
     <main className="min-h-screen text-gray-800 bg-gradient-to-br from-red-50 via-white to-indigo-50">
-      <Navbar />
       <div className="flex justify-center items-center min-h-[50vh]">
         <div className="text-xl text-gray-600">Loading beadle dashboard...</div>
       </div>
-      <Footer />
     </main>
   )
 });
 
-export default function BeedleDashboard() {
-  return <DynamicBeedleDashboard />;
+export default function BeadleDashboard() {
+  return <DynamicBeadleDashboard />;
 }

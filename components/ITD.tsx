@@ -1,5 +1,4 @@
 "use client";
-{/* Image & Text Display */ }
 
 import { StaticImageData } from "next/image";
 import Image from "next/image";
